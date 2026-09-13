@@ -1,0 +1,72 @@
+titel: Summe einer Liste
+kontext: klassiker
+sterne: 3
+reihenfolge: 7
+kurz: Ein Programm, das seinen eigenen Befehl verändert.
+leitfrage: Wie kann Johnny nacheinander verschiedene Zellen bearbeiten, obwohl die Adresse im Befehl fest steht?
+text: |
+  Ab Zelle **100** steht eine Liste von Zahlen. Wie viele es sind, steht in Zelle **050**.
+  Berechne die **Summe** aller Zahlen der Liste und speichere sie in Zelle **051**.
+
+  Das Problem: `ADD 100` addiert immer nur Zelle 100. Aber Befehle sind Zahlen – und Zahlen kann man verändern!
+  Mit `INC` auf den ADD-Befehl zeigt er auf die nächste Zelle.
+
+  **Wichtig:** Nach einem Lauf ist das Programm verändert. Damit es auch beim zweiten Mal funktioniert,
+  steht in Zelle **048** eine Vorlage des Befehls `ADD 100` (02.100). Kopiere sie am Anfang an die richtige Stelle.
+zellen:
+  "48": Vorlage ADD 100
+  "50": Anzahl
+  "51": Summe
+start: |
+  048: 2100
+  050: 4
+  0
+  100: 12
+  30
+  7
+  51
+tests:
+  - ein: { "50": 4, "100": 12, "101": 30, "102": 7, "103": 51 }
+    aus: { "51": 100 }
+  - name: leere Liste
+    ein: { "50": 0, "100": 99 }
+    aus: { "51": 0 }
+  - ein: { "50": 6, "100": 1, "101": 2, "102": 3, "103": 4, "104": 5, "105": 6 }
+    aus: { "51": 21 }
+tipps:
+  - "Plane zuerst ohne Selbstveränderung: Summe := 0 · Schleife solange Anzahl ≠ 0 · Summe + Listenelement · Anzahl − 1."
+  - |
+    Der Befehl, der das Listenelement addiert (`ADD 100`), steht in einer bestimmten Zelle, z. B. 007.
+    Mit `INC 007` wird aus `02.100` die Zahl `02.101` – also `ADD 101`.
+    Am Programmanfang: `TAKE 048` und `SAVE 007` stellen den Befehl wieder auf `ADD 100`.
+  - |
+    ```
+    000: TAKE 048     ; Vorlage ADD 100
+    001: SAVE ___     ; in den Addierbefehl kopieren
+    002: NULL 051
+    003: TST  050
+    004: JMP  006
+    005: HLT
+    006: TAKE 051
+    007: ADD  100     ; ← wird verändert
+    008: SAVE 051
+    009: INC  ___
+    010: DEC  ___
+    011: JMP  ___
+    ```
+loesung: |
+  TAKE 048
+  SAVE 007
+  NULL 051
+  TST 050
+  JMP 006
+  HLT
+  TAKE 051
+  ADD 100
+  SAVE 051
+  INC 007
+  DEC 050
+  JMP 003
+erklaerung: |
+  **Selbstverändernder Code** ist nur möglich, weil Befehle und Daten im selben Speicher liegen (Von-Neumann!).
+  Echte Prozessoren lösen das eleganter mit **indirekter Adressierung** (Zeigern) – Johnny kennt so etwas nicht.

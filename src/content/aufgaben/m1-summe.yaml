@@ -1,0 +1,46 @@
+titel: Summe dreier Zahlen
+kontext: mathe
+sterne: 1
+reihenfolge: 1
+kurz: Drei Zahlen addieren und das Ergebnis speichern.
+leitfrage: Wie wird aus einer Rechnung eine Folge von Befehlen?
+text: |
+  In den Zellen **100**, **101** und **102** stehen drei Zahlen **a**, **b** und **c**.
+
+  Schreibe ab Zelle **000** ein Programm, das **a + b + c** berechnet und das Ergebnis in Zelle **103** speichert.
+zellen:
+  "100": a
+  "101": b
+  "102": c
+  "103": Summe
+start: |
+  100: 4
+  7
+  9
+tests:
+  - ein: { "100": 4, "101": 7, "102": 9 }
+    aus: { "103": 20 }
+  - ein: { "100": 0, "101": 0, "102": 0 }
+    aus: { "103": 0 }
+  - ein: { "100": 1000, "101": 234, "102": 5 }
+    aus: { "103": 1239 }
+tipps:
+  - Johnny rechnet immer mit dem **Akkumulator**. Welche Zahl muss als Erstes dort hinein?
+  - "Die Reihenfolge ist: **holen** – **addieren** – **addieren** – **speichern** – **anhalten**."
+  - |
+    Ergänze die Lücken:
+    ```
+    000: TAKE ___
+    001: ADD  101
+    002: ADD  ___
+    003: SAVE ___
+    004: HLT
+    ```
+loesung: |
+  TAKE 100
+  ADD 101
+  ADD 102
+  SAVE 103
+  HLT
+erklaerung: |
+  Fünf Befehle, 42 Takte. Das Muster **TAKE – rechnen – SAVE** brauchst du in fast jedem Johnny-Programm.

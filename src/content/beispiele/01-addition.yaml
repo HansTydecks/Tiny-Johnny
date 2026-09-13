@@ -1,0 +1,10 @@
+titel: Zwei Zahlen addieren
+beschreibung: Holt a und b aus dem Speicher und legt die Summe in Zelle 102 ab.
+reihenfolge: 1
+programm: |
+  000: TAKE 100   ; a in den Akku
+  ADD 101         ; b dazu
+  SAVE 102        ; Ergebnis speichern
+  HLT
+  100: 7          ; a
+  5               ; b

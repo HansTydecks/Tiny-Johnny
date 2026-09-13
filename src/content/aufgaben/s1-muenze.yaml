@@ -1,0 +1,48 @@
+titel: Münze eingesammelt
+kontext: spiele
+sterne: 1
+reihenfolge: 1
+kurz: Punkte erhöhen und Münzen zählen.
+leitfrage: Welche Befehle verändern eine Zelle direkt – und welche brauchen den Akku?
+text: |
+  In einem Jump-’n’-Run sammelt die Spielfigur eine Münze ein. Dann soll passieren:
+
+  - Der **Punktestand** (Zelle **100**) wird um den **Münzwert** (Zelle **102**) erhöht.
+  - Der **Münzzähler** (Zelle **101**) wird um **1** erhöht.
+
+  Versuche, den Münzzähler mit einem einzigen Befehl zu erhöhen.
+zellen:
+  "100": Punkte
+  "101": Münzen
+  "102": Münzwert
+start: |
+  100: 20
+  3
+  5
+tests:
+  - ein: { "100": 20, "101": 3, "102": 5 }
+    aus: { "100": 25, "101": 4 }
+  - ein: { "100": 0, "101": 0, "102": 5 }
+    aus: { "100": 5, "101": 1 }
+  - ein: { "100": 1999, "101": 99, "102": 50 }
+    aus: { "100": 2049, "101": 100 }
+tipps:
+  - "Für die Punkte brauchst du den Akku: holen, addieren, zurückschreiben."
+  - Für „+1“ gibt es einen eigenen Befehl, der direkt mit einer Zelle arbeitet.
+  - |
+    ```
+    000: TAKE 100
+    001: ADD  ___
+    002: SAVE ___
+    003: INC  ___
+    004: HLT
+    ```
+loesung: |
+  TAKE 100
+  ADD 102
+  SAVE 100
+  INC 101
+  HLT
+erklaerung: |
+  **INC** braucht keinen vorherigen TAKE – intern benutzt er aber trotzdem den Akkumulator (`db→acc`, `acc++`, `acc→db`).
+  Deshalb kommt INC hier **nach** dem SAVE.

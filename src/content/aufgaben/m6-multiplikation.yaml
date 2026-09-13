@@ -1,0 +1,59 @@
+titel: Multiplikation mit einer Schleife
+kontext: mathe
+sterne: 2
+reihenfolge: 6
+kurz: a · b durch wiederholtes Addieren.
+leitfrage: Wie wird aus einer einfachen Addition eine Multiplikation?
+text: |
+  In **100** steht **a**, in **101** steht **b**. Speichere **a · b** in Zelle **102**.
+
+  Johnny kann nur addieren – also musst du **b-mal a addieren**. Zelle 101 darf dabei verändert werden.
+zellen:
+  "100": a
+  "101": b (Zähler)
+  "102": Produkt
+start: |
+  100: 6
+  7
+tests:
+  - ein: { "100": 6, "101": 7 }
+    aus: { "102": 42 }
+  - ein: { "100": 5, "101": 0 }
+    aus: { "102": 0 }
+  - ein: { "100": 0, "101": 9 }
+    aus: { "102": 0 }
+  - ein: { "100": 12, "101": 12 }
+    aus: { "102": 144 }
+tipps:
+  - 6 · 7 = 6 + 6 + 6 + 6 + 6 + 6 + 6. Wer zählt mit, wie oft schon addiert wurde? Zelle 101 kann rückwärts zählen.
+  - |
+    Struktur:
+    1. Produkt auf 0 setzen
+    2. Ist b = 0? → fertig
+    3. Produkt + a, dann b − 1
+    4. zurück zu 2
+  - |
+    ```
+    000: NULL 102
+    001: TST  101     ; b = 0?
+    002: JMP  ___     ; nein → weiterrechnen
+    003: HLT
+    004: TAKE 102
+    005: ADD  ___
+    006: SAVE 102
+    007: DEC  ___
+    008: JMP  ___
+    ```
+loesung: |
+  NULL 102
+  TST 101
+  JMP 004
+  HLT
+  TAKE 102
+  ADD 100
+  SAVE 102
+  DEC 101
+  JMP 001
+erklaerung: |
+  Das ist das Grundmuster einer **Zählschleife**: Test am Anfang, Arbeit, Zähler verringern, zurückspringen.
+  Beachte: Der Test steht **vor** `TAKE 102`, weil TST den Akku überschreibt.

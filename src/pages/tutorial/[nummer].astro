@@ -1,0 +1,123 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MissionRunner from '../../components/learning/MissionRunner.svelte';
+import { md, mdInline } from '../../lib/content';
+import { levelId, toLevelView } from '../../lib/tutorial';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const levels = (await getCollection('tutorial')).sort((a, b) => a.data.nummer - b.data.nummer);
+  return levels.map((entry, i) => ({
+    params: { nummer: levelId(entry.data.nummer) },
+    props: { entry, next: levels[i + 1], prev: levels[i - 1] },
+  }));
+}
+
+const { entry, next, prev } = Astro.props;
+const level = toLevelView(entry, md, mdInline);
+const d = entry.data;
+---
+
+<BaseLayout title={`Mission ${d.nummer}: ${d.titel}`} description={d.leitfrage}>
+  <div class="page">
+    <header class="head">
+      <div class="left">
+        <nav class="crumbs" aria-label="Brotkrumen">
+          <a href={u('tutorial')}>Tutorial</a>
+          <span aria-hidden="true">/</span>
+          <span>Mission {d.nummer} von 14</span>
+          {d.vertiefung && <span class="chip">Vertiefung</span>}
+        </nav>
+        <h1>{d.titel}</h1>
+      </div>
+      <div class="leitfrage">
+        <span class="lf-label">Leitfrage</span>
+        <span class="lf-text">{d.leitfrage}</span>
+      </div>
+      <div class="pager">
+        {prev && <a class="btn small ghost" href={u(`tutorial/${levelId(prev.data.nummer)}`)} title={prev.data.titel}>← {prev.data.nummer}</a>}
+        {next && <a class="btn small ghost" href={u(`tutorial/${levelId(next.data.nummer)}`)} title={next.data.titel}>{next.data.nummer} →</a>}
+      </div>
+    </header>
+
+    <MissionRunner
+      client:load
+      {level}
+      nextHref={next ? u(`tutorial/${levelId(next.data.nummer)}`) : u('aufgaben')}
+      nextTitle={next ? `Mission ${next.data.nummer}: ${next.data.titel}` : 'Aufgaben'}
+      overviewHref={u('tutorial')}
+    />
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 20px 20px 0;
+  }
+  .head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px 28px;
+    margin-bottom: 16px;
+  }
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-3);
+  }
+  .crumbs a {
+    color: var(--text-3);
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    color: var(--accent);
+  }
+  h1 {
+    margin: 2px 0 0;
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+    white-space: nowrap;
+  }
+  .leitfrage {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    max-width: 640px;
+    justify-self: start;
+  }
+  .lf-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .lf-text {
+    font-weight: 650;
+    line-height: 1.35;
+  }
+  .pager {
+    display: flex;
+    gap: 4px;
+  }
+  @media (max-width: 900px) {
+    .head {
+      grid-template-columns: 1fr auto;
+    }
+    .leitfrage {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    h1 {
+      white-space: normal;
+    }
+  }
+</style>

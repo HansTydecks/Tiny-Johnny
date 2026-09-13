@@ -1,0 +1,142 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArchitectureDiagram from '../../components/vonneumann/ArchitectureDiagram.svelte';
+import { u } from '../../lib/url';
+
+const chapters = (await getCollection('kapitel')).sort((a, b) => a.data.reihenfolge - b.data.reihenfolge);
+const links = {
+  eingabe: u('von-neumann/eingabe'),
+  ausgabe: u('von-neumann/ausgabe'),
+  speicher: u('von-neumann/speicher'),
+  steuerwerk: u('von-neumann/cpu'),
+  rechenwerk: u('von-neumann/cpu'),
+  cpu: u('von-neumann/cpu'),
+  bus: u('von-neumann/bus'),
+};
+---
+
+<BaseLayout title="Der Von-Neumann-Rechner" description="Alle Bauteile eines Von-Neumann-Rechners – interaktiv erklärt.">
+  <div class="page">
+    <header class="hero">
+      <span class="eyebrow">Teil 1</span>
+      <h1>Der Von-Neumann-Rechner</h1>
+      <p class="lead">
+        Fast jeder Computer – vom Smartphone bis zum Supercomputer – folgt einem Bauplan, den der Mathematiker
+        <b>John von Neumann</b> 1945 beschrieben hat. Klicke dich durch die Bauteile und finde heraus, wie sie zusammenarbeiten.
+      </p>
+    </header>
+
+    <ArchitectureDiagram client:visible {links} />
+
+    <h2>Die Kapitel</h2>
+    <ol class="grid">
+      {
+        chapters.map((c) => (
+          <li>
+            <a class={`ch card c-${c.data.farbe}`} href={u(`von-neumann/${c.id}`)} data-progress={`kapitel:${c.id}`}>
+              <span class="num">{c.data.reihenfolge}</span>
+              <span class="body">
+                <b>
+                  {c.data.titel}
+                  <span class="check" aria-label="erledigt">
+                    ✓
+                  </span>
+                </b>
+                <span class="kurz">{c.data.kurz}</span>
+                <span class="lf">{c.data.leitfrage}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  .hero {
+    max-width: 780px;
+  }
+  .hero h1 {
+    margin: 6px 0 12px;
+  }
+  .lead {
+    color: var(--text-2);
+    font-size: 1.08rem;
+  }
+  h2 {
+    margin-top: 48px;
+  }
+  .grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+  .ch {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    height: 100%;
+    color: var(--text);
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  }
+  .ch:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--c);
+    color: var(--text);
+  }
+  .num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--c-soft);
+    color: var(--c);
+    font-weight: 800;
+  }
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .body b {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .check {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ok);
+    color: var(--surface);
+    font-size: 0.7rem;
+    place-items: center;
+  }
+  :global(.is-done) .check {
+    display: inline-grid;
+  }
+  .kurz {
+    color: var(--text-2);
+    font-size: 0.92rem;
+  }
+  .lf {
+    color: var(--text-3);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+</style>

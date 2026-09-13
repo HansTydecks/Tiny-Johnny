@@ -1,0 +1,296 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const chapters = (await getCollection('kapitel')).sort((a, b) => a.data.reihenfolge - b.data.reihenfolge);
+  return chapters.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, chapters, prev: chapters[i - 1], next: chapters[i + 1] },
+  }));
+}
+
+const { entry, chapters, prev, next } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const toc = headings.filter((h) => h.depth === 2);
+---
+
+<BaseLayout title={d.titel} description={d.leitfrage}>
+  <div class="page">
+    <aside class="side">
+      <nav class="chapters" aria-label="Kapitel">
+        <a class="back" href={u('von-neumann')}>Von-Neumann-Rechner</a>
+        <ol>
+          {
+            chapters.map((c) => (
+              <li>
+                <a href={u(`von-neumann/${c.id}`)} class:list={[`c-${c.data.farbe}`, { active: c.id === entry.id }]} data-progress={`kapitel:${c.id}`}>
+                  <span class="dot" aria-hidden="true" />
+                  <span>{c.data.titel}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+        <a class="next-part" href={u('tutorial')}>Weiter: Johnny-Tutorial →</a>
+      </nav>
+    </aside>
+
+    <article class="content">
+      <header class={`head c-${d.farbe}`}>
+        <span class="eyebrow">Kapitel {d.reihenfolge} {d.dauer && <span class="muted">· {d.dauer}</span>}</span>
+        <h1>{d.titel}</h1>
+        <div class="leitfrage">
+          <span class="lf-label">Leitfrage</span>
+          <span>{d.leitfrage}</span>
+        </div>
+      </header>
+
+      {
+        toc.length > 2 && (
+          <nav class="toc" aria-label="Inhalt dieses Kapitels">
+            {toc.map((h) => (
+              <a href={`#${h.slug}`}>{h.text}</a>
+            ))}
+          </nav>
+        )
+      }
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <footer class="foot">
+        <button class="btn" type="button" id="mark-done" data-slug={entry.id}>
+          <span class="when-open">✓ Kapitel als erledigt markieren</span>
+          <span class="when-done">✓ Erledigt</span>
+        </button>
+        <div class="pager">
+          {
+            prev && (
+              <a class="pg" href={u(`von-neumann/${prev.id}`)}>
+                <span>← Zurück</span>
+                <b>{prev.data.titel}</b>
+              </a>
+            )
+          }
+          {
+            next ? (
+              <a class="pg nx" href={u(`von-neumann/${next.id}`)}>
+                <span>Weiter →</span>
+                <b>{next.data.titel}</b>
+              </a>
+            ) : (
+              <a class="pg nx" href={u('tutorial')}>
+                <span>Weiter →</span>
+                <b>Johnny-Tutorial</b>
+              </a>
+            )
+          }
+        </div>
+      </footer>
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  import { loadProgress, markKapitel, onProgress } from '../../lib/progress';
+  const btn = document.getElementById('mark-done') as HTMLButtonElement | null;
+  if (btn) {
+    const slug = btn.dataset.slug!;
+    const render = () => btn.classList.toggle('done', !!loadProgress().kapitel[slug]);
+    render();
+    onProgress(render);
+    btn.addEventListener('click', () => markKapitel(slug, !loadProgress().kapitel[slug]));
+  }
+</script>
+
+<style>
+  .page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 28px 20px 0;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 48px;
+  }
+  .side {
+    position: relative;
+  }
+  .chapters {
+    position: sticky;
+    top: calc(var(--header-h) + 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .back {
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    text-decoration: none;
+    margin-bottom: 4px;
+  }
+  .chapters ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .chapters a:not(.back):not(.next-part) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 520;
+  }
+  .chapters a:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .chapters a.active {
+    background: var(--c-soft);
+    color: var(--text);
+    font-weight: 650;
+  }
+  .dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--c);
+  }
+  :global(.is-done) .dot {
+    background: var(--c);
+  }
+  .next-part {
+    margin-top: 10px;
+    font-size: 0.88rem;
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .content {
+    min-width: 0;
+  }
+  .head {
+    max-width: var(--content-w);
+    margin-bottom: 24px;
+  }
+  .head .eyebrow {
+    color: var(--c);
+  }
+  h1 {
+    margin: 6px 0 16px;
+  }
+  .leitfrage {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: var(--c-soft);
+    border-left: 4px solid var(--c);
+    font-weight: 650;
+    font-size: 1.08rem;
+    line-height: 1.4;
+  }
+  .lf-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    color: var(--c);
+  }
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: var(--content-w);
+    margin-bottom: 28px;
+  }
+  .toc a {
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    text-decoration: none;
+  }
+  .toc a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .prose :global(h2) {
+    scroll-margin-top: calc(var(--header-h) + 20px);
+  }
+  .foot {
+    max-width: var(--content-w);
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  #mark-done {
+    align-self: flex-start;
+  }
+  #mark-done .when-done,
+  :global(#mark-done.done) .when-open {
+    display: none;
+  }
+  :global(#mark-done.done) .when-done {
+    display: inline;
+  }
+  :global(#mark-done.done) {
+    background: var(--ok-soft);
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .pg {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    text-decoration: none;
+    color: var(--text);
+  }
+  .pg:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  .pg span {
+    font-size: 0.8rem;
+    color: var(--text-3);
+  }
+  .pg.nx {
+    grid-column: 2;
+    text-align: right;
+  }
+  @media (max-width: 980px) {
+    .page {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .side {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,60 @@
+titel: Verschieben im Bonsai-Modus
+kontext: klassiker
+sterne: 2
+reihenfolge: 4
+modus: bonsai
+kurz: Einen Wert kopieren – nur mit INC, DEC, TST, JMP und HLT.
+leitfrage: Wie viel kann ein Computer mit nur fünf Befehlen?
+text: |
+  Diese Aufgabe läuft im **Bonsai-Modus**: Es gibt nur **INC**, **DEC**, **JMP**, **TST** und **HLT**
+  (mit den Opcodes 01–05). Kein TAKE, kein SAVE!
+
+  Verschiebe den Wert aus Zelle **100** nach Zelle **101**. Am Ende steht in 101 der alte Wert von 100,
+  Zelle 100 ist 0. **Achtung:** In Zelle 101 kann vorher schon etwas stehen.
+zellen:
+  "100": Quelle
+  "101": Ziel
+start: |
+  100: 7
+  3
+tests:
+  - ein: { "100": 7, "101": 3 }
+    aus: { "100": 0, "101": 7 }
+  - ein: { "100": 0, "101": 9 }
+    aus: { "100": 0, "101": 0 }
+  - ein: { "100": 5, "101": 0 }
+    aus: { "100": 0, "101": 5 }
+tipps:
+  - "Zwei Schleifen hintereinander: Zuerst das Ziel auf 0 herunterzählen, dann Stück für Stück umfüllen."
+  - |
+    Schleife 1: Ist Ziel = 0? → weiter zu Schleife 2. Sonst Ziel − 1, zurück.
+    Schleife 2: Ist Quelle = 0? → fertig. Sonst Quelle − 1, Ziel + 1, zurück.
+  - |
+    ```
+    000: TST 101
+    001: JMP 003
+    002: JMP ___      ; Ziel ist 0 → Schleife 2
+    003: DEC 101
+    004: JMP 000
+    005: TST 100
+    006: JMP ___
+    007: HLT
+    008: DEC ___
+    009: INC ___
+    010: JMP ___
+    ```
+loesung: |
+  TST 101
+  JMP 003
+  JMP 005
+  DEC 101
+  JMP 000
+  TST 100
+  JMP 008
+  HLT
+  DEC 100
+  INC 101
+  JMP 005
+erklaerung: |
+  Mit nur fünf Befehlen lässt sich im Prinzip **alles** programmieren, was auch ein moderner Computer kann.
+  Der Preis: Für große Zahlen braucht das Programm sehr viele Schritte.

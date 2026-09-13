@@ -1,0 +1,62 @@
+titel: Neuer Highscore
+kontext: spiele
+sterne: 2
+reihenfolge: 4
+kurz: Rekord nur überschreiben, wenn er übertroffen wurde.
+leitfrage: Wie prüft Johnny „größer als“?
+text: |
+  Das Spiel ist zu Ende. In Zelle **100** stehen die erreichten **Punkte**, in Zelle **101** der bisherige **Highscore**.
+
+  - Sind die Punkte **größer** als der Highscore, wird der Highscore auf die Punkte gesetzt und **Neuer Rekord** (Zelle **103**) auf **1**.
+  - Sonst bleibt der Highscore unverändert und Neuer Rekord ist **0**.
+
+  Zelle **102** ist eine Hilfszelle.
+zellen:
+  "100": Punkte
+  "101": Highscore
+  "102": Hilfszelle
+  "103": Neuer Rekord
+start: |
+  100: 120
+  100
+tests:
+  - ein: { "100": 120, "101": 100 }
+    aus: { "101": 120, "103": 1 }
+  - ein: { "100": 80, "101": 100 }
+    aus: { "101": 100, "103": 0 }
+  - name: Gleichstand ist kein Rekord
+    ein: { "100": 100, "101": 100 }
+    aus: { "101": 100, "103": 0 }
+  - ein: { "100": 5, "101": 0, "103": 1 }
+    aus: { "101": 5, "103": 1 }
+tipps:
+  - "Punkte − Highscore ist bei Johnny nur dann **nicht 0**, wenn die Punkte wirklich größer sind."
+  - Speichere die Differenz in der Hilfszelle und entscheide mit `TST 102`.
+  - |
+    ```
+    000: NULL 103
+    001: TAKE 100
+    002: SUB  101
+    003: SAVE 102
+    004: TST  102
+    005: JMP  ___     ; nicht 0 → neuer Rekord
+    006: HLT
+    007: TAKE ___
+    008: SAVE ___
+    009: INC  ___
+    010: HLT
+    ```
+loesung: |
+  NULL 103
+  TAKE 100
+  SUB 101
+  SAVE 102
+  TST 102
+  JMP 007
+  HLT
+  TAKE 100
+  SAVE 101
+  INC 103
+  HLT
+erklaerung: |
+  Wieder der Johnny-Trick: Die gesättigte Subtraktion verwandelt „größer als“ in „ungleich 0“.

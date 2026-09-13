@@ -1,0 +1,55 @@
+titel: Game Over?
+kontext: spiele
+sterne: 2
+reihenfolge: 3
+kurz: Schaden abziehen und prüfen, ob noch Leben übrig sind.
+leitfrage: Wie reagiert ein Programm auf zwei verschiedene Fälle?
+text: |
+  Die Spielfigur wird getroffen.
+
+  - Ziehe den **Schaden** (Zelle **101**) von den **Leben** (Zelle **100**) ab.
+  - Sind die Leben danach **0**, setze **Game Over** (Zelle **102**) auf **1**, sonst auf **0**.
+
+  Mehr Schaden als Leben? Kein Problem – Johnny rechnet dann ohnehin mit 0 weiter.
+zellen:
+  "100": Leben
+  "101": Schaden
+  "102": Game Over
+start: |
+  100: 3
+  1
+tests:
+  - ein: { "100": 3, "101": 1 }
+    aus: { "100": 2, "102": 0 }
+  - ein: { "100": 1, "101": 1 }
+    aus: { "100": 0, "102": 1 }
+  - ein: { "100": 2, "101": 5 }
+    aus: { "100": 0, "102": 1 }
+  - ein: { "100": 10, "101": 0, "102": 1 }
+    aus: { "100": 10, "102": 0 }
+tipps:
+  - "Zwei Teile: erst die Rechnung (holen, abziehen, speichern), dann die Entscheidung mit TST."
+  - Setze Game Over zuerst auf 0. Dann musst du im Fall „Leben = 0“ nur noch eins dazuzählen.
+  - |
+    ```
+    000: TAKE 100
+    001: SUB  101
+    002: SAVE 100
+    003: NULL ___
+    004: TST  ___     ; Leben = 0? → nächsten Befehl überspringen
+    005: HLT
+    006: INC  ___
+    007: HLT
+    ```
+loesung: |
+  TAKE 100
+  SUB 101
+  SAVE 100
+  NULL 102
+  TST 100
+  HLT
+  INC 102
+  HLT
+erklaerung: |
+  Hier wird das „Überspringen“ von TST direkt genutzt: Im Normalfall hält das Programm sofort an,
+  nur bei 0 wird das erste HLT übersprungen. Ein Programm darf **mehrere HLT** haben.

@@ -1,0 +1,51 @@
+titel: Die größere Zahl
+kontext: mathe
+sterne: 2
+reihenfolge: 5
+kurz: Das Maximum zweier Zahlen bestimmen.
+leitfrage: Wie trifft ein Programm eine Auswahl zwischen zwei Werten?
+text: |
+  In **100** steht **a**, in **101** steht **b**. Speichere die **größere** der beiden Zahlen in Zelle **102**.
+  Sind beide gleich, ist das Ergebnis eben diese Zahl.
+
+  Es gibt zwei Wege: mit **TST** und Sprüngen – oder mit einem Rechentrick in nur vier Befehlen.
+  Zelle **103** darfst du als Hilfszelle benutzen.
+zellen:
+  "100": a
+  "101": b
+  "102": Maximum
+  "103": Hilfszelle
+start: |
+  100: 3
+  8
+tests:
+  - ein: { "100": 3, "101": 8 }
+    aus: { "102": 8 }
+  - ein: { "100": 8, "101": 3 }
+    aus: { "102": 8 }
+  - ein: { "100": 5, "101": 5 }
+    aus: { "102": 5 }
+  - ein: { "100": 0, "101": 0 }
+    aus: { "102": 0 }
+tipps:
+  - Was ergibt **a − b** bei Johnny, wenn a kleiner als b ist? Und wenn a größer ist?
+  - "Rechentrick: **b + (a − b)**. Überlege für beide Fälle, was herauskommt."
+  - |
+    ```
+    000: TAKE 100
+    001: SUB  ___
+    002: ADD  ___
+    003: SAVE 102
+    004: HLT
+    ```
+loesung: |
+  TAKE 100
+  SUB 101
+  ADD 101
+  SAVE 102
+  HLT
+erklaerung: |
+  Ist a > b, rechnet Johnny b + (a − b) = **a**. Ist a ≤ b, wird a − b zu 0 und es bleibt **b**.
+
+  Der Weg mit Sprüngen: a − b in die Hilfszelle, `TST 103` – ist das Ergebnis 0, ist b das Maximum, sonst a.
+  Beide Lösungen sind richtig – die Tests prüfen nur das Ergebnis.

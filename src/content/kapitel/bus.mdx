@@ -1,0 +1,94 @@
+---
+titel: Der Systembus
+kurz: Datenbus, Adressbus, Steuerbus – und der Von-Neumann-Flaschenhals.
+leitfrage: Wie kommen Daten von einem Bauteil zum anderen?
+reihenfolge: 7
+farbe: dbus
+dauer: ca. 25 Minuten
+---
+import BusSim from '../../components/vonneumann/BusSim.svelte';
+import BottleneckSim from '../../components/vonneumann/BottleneckSim.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+
+## Leitungen auf dem Mainboard
+
+Schau dir ein Mainboard genau an: Zwischen Prozessor, Arbeitsspeicher und Steckplätzen verlaufen hunderte feine
+**Leiterbahnen**. Sie bilden den **Systembus** – das Verkehrsnetz des Computers.
+
+Ein guter Vergleich ist das **Schienennetz eines großen Bahnhofs**:
+
+| Bahnhof | Computer |
+|---|---|
+| Gleise | Leitungen des Busses |
+| Zielbahnhof eines Zuges | **Adresse** – wohin sollen die Daten? |
+| Fracht im Zug | **Daten** |
+| Stellwerk mit Signalen | **Steuersignale** – wann darf wer fahren, lesen oder schreiben? |
+| Nur ein Zug pro Gleis | Nur ein Datentransport zur selben Zeit |
+
+## Drei Bus-Arten
+
+**Datenbus**
+- transportiert die eigentlichen Daten – **in beide Richtungen**
+- seine Breite (Datenwortbreite) hängt von der CPU ab: 8, 16, 32 oder 64 Leitungen
+
+**Adressbus**
+- legt die Speicherzelle fest, in die geschrieben oder aus der gelesen werden soll
+- führt nur von der CPU weg
+- **8 Adressleitungen = 2⁸ Speicherzellen = 256 Speicherzellen**
+
+**Steuerbus**
+- legt z. B. fest, ob **gelesen** oder **geschrieben** wird
+- überträgt den **Takt**, Unterbrechungsanforderungen (Interrupts) und Signale wie den DRAM-Refresh
+
+Spiele durch, wie die drei Busse zusammenarbeiten, wenn die CPU eine Speicherzelle liest oder beschreibt:
+
+<BusSim client:visible />
+
+<Callout typ="folie" titel="BUS = „Binary Unit System“?">
+Diese Erklärung liest man oft – sie ist aber eine nachträglich erfundene Merkhilfe (ein *Backronym*). Das Wort **Bus**
+stammt vom lateinischen *omnibus* – „für alle“: Wie ein Omnibus alle Fahrgäste mitnimmt, verbindet der Bus alle
+Bauteile über dieselben Leitungen.
+</Callout>
+
+<Quiz
+  client:visible
+  frage="Die CPU will den Wert 7 in Zelle 5 schreiben. Welche Busse sind beteiligt?"
+  optionen={['Adressbus: Adresse 5', 'Datenbus: Wert 7', 'Steuerbus: Signal „schreiben“', 'Keiner – das erledigt der Speicher allein']}
+  richtig={[0, 1, 2]}
+  erklaerung="Für jeden Speicherzugriff werden alle drei Busse gebraucht: wohin (Adressbus), was (Datenbus) und wie (Steuerbus)."
+/>
+
+## Der Von-Neumann-Flaschenhals
+
+Die Von-Neumann-Architektur hat **nur einen Verbindungsweg** für alles: Befehle und Daten müssen durch denselben Bus.
+**Wenn einer redet, muss der Rest schweigen.**
+
+Stell dir vor, du gießt eine volle Flasche aus: Egal wie groß die Flasche ist – das Wasser muss durch den **engen
+Flaschenhals** und fließt deshalb nur langsam. Genauso muss jedes Datenwort durch den Bus. Der Bus wird zum **Flaschenhals**
+(englisch *Von-Neumann bottleneck*).
+
+<BottleneckSim client:visible />
+
+<Callout typ="merke" titel="Datenverarbeitung – das Wichtigste">
+- Datenverarbeitungsprozesse finden **immer in der CPU** statt.
+- Die CPU ist über einen **Systembus** mit dem Arbeitsspeicher (RAM) und den Ein- und Ausgabegeräten verbunden.
+- Probleme sind von der CPU **nur in kleinen Schritten** lösbar.
+- Eine CPU kann innerhalb einer Sekunde **mehrere hundert Millionen bis Milliarden Befehle** ausführen – wenn der Bus die Daten schnell genug liefert.
+</Callout>
+
+<Quiz
+  client:visible
+  frage="Wie viele Speicherzellen kann ein Adressbus mit 16 Leitungen ansprechen?"
+  optionen={['16', '256', '65 536', '16 Millionen']}
+  richtig={2}
+  erklaerung="2¹⁶ = 65 536. Jede zusätzliche Leitung verdoppelt die Anzahl."
+/>
+
+<Vertiefung titel="Moderne Busse">
+Heute verbindet man Bauteile meist nicht mehr über einen einzigen parallelen Bus, sondern über viele schnelle
+**Punkt-zu-Punkt-Verbindungen**: Der Arbeitsspeicher ist direkt an den Prozessor angebunden, Grafikkarte und SSD über
+**PCI Express**, bei dem Daten seriell über mehrere „Lanes“ fließen. Das Grundprinzip – Adresse, Daten, Steuersignale –
+bleibt aber gleich.
+</Vertiefung>

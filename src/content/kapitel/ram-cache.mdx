@@ -1,0 +1,97 @@
+---
+titel: Cache und Register
+kurz: Warum der Prozessor wartet – und wie ein Zwischenspeicher hilft.
+leitfrage: Warum wartet ein schneller Prozessor so oft – und wie hilft ein Cache?
+reihenfolge: 6
+farbe: alu
+dauer: ca. 25 Minuten
+---
+import CacheSim from '../../components/storage/CacheSim.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+
+## Das Warteproblem
+
+Zwischen Prozessor und Arbeitsspeicher liegt der **Bus**. Jedes Datenwort muss erst über den Bus hin- und
+hertransportiert werden. Moderne Prozessoren rechnen aber viel schneller, als der Arbeitsspeicher Daten liefern kann:
+
+- Der Prozessor muss warten, bis alle Daten über den Bus transportiert wurden.
+- **Viel Prozessorzeit wird mit Warten verschwendet.**
+
+Die Lösung: Ein Teil des Arbeitsspeichers wird **direkt im Prozessorchip** platziert – der **Cache** (von franz. *caché*,
+„versteckt“: ein versteckter Arbeitsspeicher).
+
+## Der Cache
+
+- hat **deutlich weniger Speicherzellen** als der RAM (z. B. 32 MB)
+- ist **deutlich schneller** als der RAM
+- enthält den Teil des Arbeitsspeichers, der **wahrscheinlich als Nächstes benötigt** wird
+- Ist der benötigte Teil nicht im Cache („Cache Miss“), muss er aus dem RAM **nachgeladen** werden – dafür werden andere Teile
+  **überschrieben**.
+
+Warum funktioniert das so gut? Programme verhalten sich vorhersagbar (**Lokalitätsprinzip**):
+
+- **zeitlich:** Was gerade benutzt wurde, wird bald wieder benutzt (z. B. Befehle in einer Schleife).
+- **räumlich:** Was neben gerade benutzten Daten liegt, wird bald benutzt (z. B. das nächste Element einer Liste).
+
+## Welcher Eintrag muss gehen?
+
+Wenn der Cache voll ist und ein neuer Block geladen werden muss, muss ein alter Eintrag weichen.
+Mögliche **Lösch-Strategien**:
+
+- der **älteste** Eintrag (*FIFO – First In, First Out*)
+- der Eintrag, auf den **am längsten nicht zugegriffen** wurde (*LRU – Least Recently Used*)
+- der Eintrag, der **am seltensten benutzt** wurde (*LFU – Least Frequently Used*)
+- ein **zufällig** gewählter Eintrag
+
+Probiere die Strategien aus und vergleiche, wie viele Treffer sie erzielen. Ändere auch die Zugriffsfolge!
+
+<CacheSim client:visible />
+
+<Quiz
+  client:visible
+  frage="Die CPU führt eine Schleife aus, die immer wieder dieselben 3 Speicherblöcke benutzt. Der Cache hat 4 Plätze. Was passiert?"
+  optionen={[
+    'Nach den ersten Durchläufen sind alle Zugriffe Treffer – die Schleife läuft sehr schnell.',
+    'Jeder Zugriff muss aus dem RAM geladen werden.',
+    'Der Cache läuft über und verliert Daten.',
+  ]}
+  richtig={0}
+  erklaerung="Das ist zeitliche Lokalität: Nach dem ersten Laden bleiben die drei Blöcke im Cache, weil nie verdrängt werden muss."
+/>
+
+## Die Cache-Hierarchie
+
+Moderne Prozessoren haben mehrere Cache-Stufen:
+
+| Stufe | Größe | Geschwindigkeit | räumliche Nähe zur ALU |
+|---|---|---|---|
+| **L1** | klein (32–64 KB je Kern) | am schnellsten | am nächsten |
+| **L2** | mittel (0,25–2 MB je Kern) | schnell | nah |
+| **L3** | groß (8–64 MB, für alle Kerne) | langsamer | ferner |
+
+Sucht der Prozessor Daten, schaut er zuerst im L1-Cache, dann im L2, dann im L3 – und erst dann im Arbeitsspeicher.
+
+## Register – Speicher direkt im Rechenwerk
+
+Noch schneller als der Cache sind die **Register**: einzelne Speicherzellen direkt im Rechen- und Steuerwerk.
+Ein Prozessor hat nur wenige Dutzend davon, aber auf sie kann er ohne jede Wartezeit zugreifen.
+
+- **Datenregister** enthalten die Operanden und Ergebnisse der aktuellen Berechnung (bei Johnny: der Akkumulator).
+- **Adressregister** enthalten die Adresse, die gerade auf den Adressbus gelegt wird.
+- Der **Befehlszähler** enthält die Adresse des **nächsten Befehls**.
+- Das **Befehlsregister** enthält den **aktuellen Befehl**.
+
+<Callout typ="achtung" titel="Adressregister oder Befehlszähler?">
+Man liest manchmal: „Das Adressregister enthält die Adresse des nächsten Befehls.“ Genau genommen ist das die Aufgabe des
+**Befehlszählers**. Ein Adressregister hält allgemein die Adresse, auf die gerade zugegriffen wird – das kann ein Befehl
+oder ein Datum sein. Bei Johnny gibt es kein eigenes Adressregister: Der Adressbus bekommt seine Adresse direkt vom
+Programmzähler (`pc→ab`) oder vom Befehlsregister (`ins→ab`).
+</Callout>
+
+<Vertiefung titel="Cache-Treffer in Zahlen">
+Angenommen, ein Zugriff auf den L1-Cache dauert 1 ns, auf den RAM 100 ns. Bei einer Trefferquote von 95 % beträgt die
+mittlere Zugriffszeit 0,95 · 1 ns + 0,05 · (1 ns + 100 ns) = 6 ns – statt 100 ns ohne Cache. Das ist rund **16-mal schneller**.
+Echte Prozessoren erreichen im L1-Cache oft Trefferquoten von über 95 %.
+</Vertiefung>

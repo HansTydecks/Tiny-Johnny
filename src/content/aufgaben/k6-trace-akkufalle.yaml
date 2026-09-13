@@ -1,0 +1,57 @@
+titel: Programm lesen – die Akku-Falle
+kontext: klassiker
+sterne: 2
+reihenfolge: 6
+typ: trace
+kurz: Eine Schleife mit Tücken im Kopf durchspielen.
+leitfrage: Welche Befehle verändern den Akkumulator, obwohl man es nicht sofort sieht?
+text: |
+  Spiele das Programm im Speicher **Befehl für Befehl** im Kopf durch.
+  Achte besonders darauf, welche Befehle den **Akkumulator** verändern!
+zellen:
+  "100": x
+  "101": Zähler
+  "102": Ergebnis
+start: |
+  000: TAKE 100
+  ADD 101
+  SAVE 102
+  DEC 101
+  TST 101
+  JMP 001
+  HLT
+  100: 1
+  3
+fragen:
+  - text: Was steht am Ende in Zelle **102**?
+    zelle: 102
+    antwort: 2
+  - text: Was steht am Ende in Zelle **101**?
+    zelle: 101
+    antwort: 0
+  - text: Was steht am Ende im **Akkumulator**?
+    akku: true
+    antwort: 0
+tipps:
+  - "Trace-Tabelle mit den Spalten: Adresse · Befehl · Akku · 101 · 102."
+  - "DEC und TST holen die Zelle in den Akku! Nach `DEC 101` im ersten Durchlauf steht im Akku 2, nicht mehr 4."
+loesung: |
+  000 TAKE 100  → Akku 1
+  001 ADD 101   → Akku 4
+  002 SAVE 102  → 102 = 4
+  003 DEC 101   → 101 = 2, Akku 2
+  004 TST 101   → Akku 2 (≠ 0)
+  005 JMP 001
+  001 ADD 101   → Akku 4
+  002 SAVE 102  → 102 = 4
+  003 DEC 101   → 101 = 1, Akku 1
+  004 TST 101   → Akku 1
+  005 JMP 001
+  001 ADD 101   → Akku 2
+  002 SAVE 102  → 102 = 2
+  003 DEC 101   → 101 = 0, Akku 0
+  004 TST 101   → 0 → JMP wird übersprungen
+  006 HLT
+erklaerung: |
+  Wer denkt, der Akku behalte das Zwischenergebnis, liegt falsch: **DEC** und **TST** überschreiben ihn.
+  Genau solche Effekte machen Maschinenprogramme fehleranfällig – und Trace-Tabellen so wertvoll.

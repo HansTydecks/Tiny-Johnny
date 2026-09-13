@@ -1,0 +1,76 @@
+---
+titel: Stärken und Schwächen
+kurz: Was die Von-Neumann-Architektur so erfolgreich macht – und wo ihre Grenzen liegen.
+leitfrage: Was macht die Von-Neumann-Architektur so erfolgreich – und wo liegen ihre Grenzen?
+reihenfolge: 9
+farbe: abus
+dauer: ca. 20 Minuten
+---
+import DragSort from '../../components/learning/DragSort.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+
+Du kennst jetzt alle Bauteile. Zeit für eine Bewertung: Warum setzte sich dieser Bauplan durch – und welche Probleme bringt er mit sich?
+
+<DragSort
+  client:visible
+  titel="Sortiere: Vorteil oder Nachteil der Von-Neumann-Architektur?"
+  kategorien={['Positiv', 'Negativ']}
+  farben={['dbus', 'io']}
+  karten={[
+    { text: 'Einfacher Aufbau', cat: 0 },
+    { text: 'Keine Trennung von Befehls- und Datenspeicher – einer für alles', cat: 0, info: 'Speicher kann flexibel genutzt werden' },
+    { text: 'Frei programmierbar', cat: 0 },
+    { text: 'Eine Struktur für viele Aufgaben', cat: 0 },
+    { text: 'Im Speicher sind Befehle und Daten nicht unterscheidbar', cat: 1 },
+    { text: 'Sequenzielle Verarbeitung: Die CPU arbeitet nur an einem Befehl', cat: 1 },
+    { text: 'Nur ein Verbindungsweg: Wenn einer redet, muss der Rest schweigen', cat: 1, info: 'der Von-Neumann-Flaschenhals' },
+  ]}
+/>
+
+## Positiv
+
+- **Einfacher Aufbau:** Wenige, klar getrennte Bauteile mit klaren Aufgaben.
+- **Ein Speicher für alles:** Es gibt keine feste Aufteilung zwischen Befehlen und Daten. Ein Programm kann so viel
+  Speicher für Daten nutzen, wie es braucht.
+- **Frei programmierbar:** Um eine neue Aufgabe zu lösen, lädt man einfach ein anderes Programm – ohne Umbau der Hardware.
+- **Eine Struktur für viele Aufgaben:** Derselbe Rechner kann Texte schreiben, Spiele ausführen und Musik abspielen.
+
+## Negativ
+
+- **Befehle und Daten sind nicht unterscheidbar:** Ein Programmfehler kann dazu führen, dass Daten als Befehle ausgeführt
+  werden. Viele Sicherheitslücken nutzen genau das aus.
+- **Sequenzielle Verarbeitung:** Die CPU arbeitet immer nur an **einem** Befehl nach dem anderen.
+- **Nur ein Verbindungsweg (Bus):** Alles muss durch den **Flaschenhals** – der Prozessor wartet oft auf Daten.
+
+<Callout typ="frage">
+„Keine Trennung von Befehls- und Datenspeicher“ ist ein Vorteil – und „Befehle und Daten sind nicht unterscheidbar“ ein
+Nachteil. Ist das nicht dasselbe? Diskutiert: Unter welchen Umständen überwiegt was?
+</Callout>
+
+## Wie moderne Computer die Grenzen umgehen
+
+| Problem | Lösung heute |
+|---|---|
+| Flaschenhals Bus | **Caches** (L1–L3), schnellere Punkt-zu-Punkt-Verbindungen |
+| nur ein Befehl gleichzeitig | **Mehrkernprozessoren**, Pipelining, Grafikprozessoren mit tausenden Kernen |
+| Daten werden als Befehle ausgeführt | Speicherbereiche werden als **nicht ausführbar** markiert (NX-Bit) |
+| Befehle und Daten gemischt | im Prozessor **getrennte L1-Caches** für Befehle und Daten (Harvard-Idee) |
+
+<Quiz
+  client:visible
+  frage="Welche Maßnahme mildert den Von-Neumann-Flaschenhals am direktesten?"
+  optionen={['Ein Cache im Prozessor', 'Ein größerer Bildschirm', 'Eine größere Festplatte', 'Ein schnellerer Drucker']}
+  richtig={0}
+  erklaerung="Der Cache hält häufig benötigte Daten direkt im Prozessor bereit, sodass sie nicht erst über den Bus geholt werden müssen."
+/>
+
+<Vertiefung titel="Die Harvard-Architektur">
+Bei der **Harvard-Architektur** gibt es **zwei getrennte Speicher** – einen für Befehle und einen für Daten – mit jeweils
+eigenen Bussen. Befehle und Daten können gleichzeitig transportiert werden, und ein Programm kann sich nicht versehentlich
+selbst überschreiben. Nachteil: Die Aufteilung ist starr.
+
+Harvard-Architekturen findet man vor allem in **Mikrocontrollern** (z. B. im Arduino) und in digitalen Signalprozessoren.
+Moderne PC-Prozessoren sind eine Mischung: außen Von Neumann, innen (im Cache) Harvard.
+</Vertiefung>

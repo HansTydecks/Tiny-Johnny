@@ -1,0 +1,56 @@
+titel: Abstand zweier Zahlen
+kontext: mathe
+sterne: 2
+reihenfolge: 4
+kurz: "|a − b| berechnen – mit einem Trick, der nur bei Johnny funktioniert."
+leitfrage: Kann man eine Schwäche des Rechenwerks als Stärke nutzen?
+text: |
+  In **100** steht **a**, in **101** steht **b**. Speichere den **Abstand** der beiden Zahlen in Zelle **102**
+  – also immer die größere minus die kleinere.
+
+  Beispiele: a = 9, b = 4 → 5. a = 4, b = 9 → ebenfalls 5.
+
+  Zelle **103** darfst du als Hilfszelle benutzen. Sprünge brauchst du nicht!
+zellen:
+  "100": a
+  "101": b
+  "102": Abstand
+  "103": Hilfszelle
+start: |
+  100: 9
+  4
+tests:
+  - ein: { "100": 9, "101": 4 }
+    aus: { "102": 5 }
+  - ein: { "100": 4, "101": 9 }
+    aus: { "102": 5 }
+  - ein: { "100": 7, "101": 7 }
+    aus: { "102": 0 }
+  - ein: { "100": 0, "101": 15 }
+    aus: { "102": 15 }
+tipps:
+  - Johnny rechnet 4 − 9 = 0. Was ergeben **a − b** und **b − a**, wenn a = 9 und b = 4 ist? Und umgekehrt?
+  - Eines der beiden Ergebnisse ist **immer 0**, das andere ist der Abstand. Was passiert, wenn du beide addierst?
+  - |
+    ```
+    000: TAKE 100
+    001: SUB  101
+    002: SAVE 103    ; a − b merken
+    003: TAKE ___
+    004: SUB  ___    ; b − a
+    005: ADD  ___    ; + (a − b)
+    006: SAVE 102
+    007: HLT
+    ```
+loesung: |
+  TAKE 100
+  SUB 101
+  SAVE 103
+  TAKE 101
+  SUB 100
+  ADD 103
+  SAVE 102
+  HLT
+erklaerung: |
+  **|a − b| = (a − b) + (b − a)** – aber nur, weil Johnny negative Ergebnisse auf 0 setzt!
+  In der normalen Mathematik wäre die Summe immer 0.

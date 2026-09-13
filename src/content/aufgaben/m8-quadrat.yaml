@@ -1,0 +1,56 @@
+titel: Quadratzahlen
+kontext: mathe
+sterne: 3
+reihenfolge: 8
+kurz: n² berechnen, ohne n zu zerstören.
+leitfrage: Warum braucht man manchmal eine Kopie einer Zahl?
+text: |
+  In Zelle **100** steht **n**. Speichere **n · n** in Zelle **101**.
+
+  **Wichtig:** Zelle 100 muss am Ende **unverändert** sein. Zelle **102** darfst du als Zähler benutzen.
+zellen:
+  "100": n
+  "101": n²
+  "102": Zähler
+start: |
+  100: 7
+tests:
+  - ein: { "100": 7 }
+    aus: { "100": 7, "101": 49 }
+  - ein: { "100": 0 }
+    aus: { "100": 0, "101": 0 }
+  - ein: { "100": 1 }
+    aus: { "100": 1, "101": 1 }
+  - ein: { "100": 100 }
+    aus: { "100": 100, "101": 10000 }
+tipps:
+  - n · n heißt n-mal n addieren. Du brauchst einen Zähler – aber n selbst darfst du nicht herunterzählen.
+  - Kopiere n zuerst in den Zähler (Zelle 102). Danach funktioniert es wie die Multiplikation.
+  - |
+    ```
+    000: TAKE 100
+    001: SAVE ___     ; Zähler := n
+    002: NULL 101
+    003: TST  ___
+    004: JMP  006
+    005: HLT
+    006: TAKE 101
+    007: ADD  ___
+    008: SAVE 101
+    009: DEC  ___
+    010: JMP  ___
+    ```
+loesung: |
+  TAKE 100
+  SAVE 102
+  NULL 101
+  TST 102
+  JMP 006
+  HLT
+  TAKE 101
+  ADD 100
+  SAVE 101
+  DEC 102
+  JMP 003
+erklaerung: |
+  Für n = 100 braucht das Programm schon über 500 Befehle. Laufzeit und Speicherbedarf von Algorithmen sind ein großes Thema der Informatik.

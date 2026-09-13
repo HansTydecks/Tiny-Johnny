@@ -1,0 +1,49 @@
+titel: Werte tauschen
+kontext: klassiker
+sterne: 1
+reihenfolge: 1
+kurz: Der Klassiker mit der Hilfsvariable.
+leitfrage: Warum geht beim Tauschen ohne Zwischenspeicher ein Wert verloren?
+text: |
+  In Zelle **100** steht **x**, in Zelle **101** steht **y**. Tausche die beiden Werte:
+  Am Ende soll in 100 der alte y-Wert und in 101 der alte x-Wert stehen.
+
+  Zelle **102** darfst du als Hilfszelle benutzen.
+zellen:
+  "100": x
+  "101": y
+  "102": Hilfszelle
+start: |
+  100: 3
+  8
+tests:
+  - ein: { "100": 3, "101": 8 }
+    aus: { "100": 8, "101": 3 }
+  - ein: { "100": 0, "101": 5 }
+    aus: { "100": 5, "101": 0 }
+  - ein: { "100": 12, "101": 12 }
+    aus: { "100": 12, "101": 12 }
+tipps:
+  - Wenn du y direkt in Zelle 100 schreibst, ist x verloren. Wo kannst du x vorher in Sicherheit bringen?
+  - "Drei Schritte: x → Hilfszelle, y → 100, Hilfszelle → 101. Jeder Schritt ist ein TAKE und ein SAVE."
+  - |
+    ```
+    000: TAKE 100
+    001: SAVE ___
+    002: TAKE ___
+    003: SAVE 100
+    004: TAKE ___
+    005: SAVE ___
+    006: HLT
+    ```
+loesung: |
+  TAKE 100
+  SAVE 102
+  TAKE 101
+  SAVE 100
+  TAKE 102
+  SAVE 101
+  HLT
+erklaerung: |
+  Das „Ringtauschen“ mit Hilfsvariable kennst du vielleicht aus Python oder Java. Johnny zeigt, warum es nötig ist:
+  Eine Speicherzelle kann immer nur **einen** Wert halten.

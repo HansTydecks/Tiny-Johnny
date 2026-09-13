@@ -1,0 +1,63 @@
+---
+interface Props {
+  titel: string;
+}
+const { titel } = Astro.props;
+---
+
+<details class="vertiefung">
+  <summary>
+    <span class="tag">Vertiefung</span>
+    <span>{titel}</span>
+  </summary>
+  <div class="inner">
+    <slot />
+  </div>
+</details>
+
+<style>
+  .vertiefung {
+    margin: 1.6em 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface);
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 650;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '+';
+    margin-left: auto;
+    font-size: 1.3rem;
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  details[open] summary::after {
+    content: '−';
+  }
+  .tag {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 800;
+    color: var(--io);
+    background: var(--io-soft);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .inner {
+    padding: 0 18px 14px;
+  }
+  .inner :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

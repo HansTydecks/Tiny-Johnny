@@ -1,0 +1,104 @@
+---
+titel: Die CPU
+kurz: Steuerwerk, Rechenwerk, Register – und die Datenverarbeitung in zwei Phasen.
+leitfrage: Wie ist der Prozessor aufgebaut und wie verarbeitet er einen Befehl?
+reihenfolge: 8
+farbe: cu
+dauer: ca. 35 Minuten
+---
+import CpuModel from '../../components/vonneumann/CpuModel.svelte';
+import FdeSim from '../../components/vonneumann/FdeSim.svelte';
+import DragSort from '../../components/learning/DragSort.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+import { u } from '../../lib/url';
+
+## Die wichtigste Komponente
+
+Die **CPU** (*Central Processing Unit*, Prozessor) ist die wichtigste Komponente für die Datenverarbeitung. Jede
+Berechnung, jede Entscheidung, jedes Verschieben von Daten wird von ihr gesteuert. Sie besteht im Von-Neumann-Modell aus
+zwei Teilen:
+
+- dem **Steuerwerk** – es *organisiert*: holt Befehle, entschlüsselt sie und steuert alle anderen Bauteile,
+- dem **Rechenwerk** (ALU) – es *rechnet*: führt arithmetische und logische Operationen aus.
+
+## Aufbau (Modell)
+
+Tippe die Bauteile an:
+
+<CpuModel client:visible />
+
+## Befehlszähler und Befehlsregister
+
+Diese beiden Register werden sehr oft verwechselt. Dabei ist der Unterschied wichtig:
+
+<Callout typ="merke" titel="Nicht verwechseln!">
+- Das **Befehlsregister** (*Instruction Register*, IR) speichert den **aktuell ausgeführten Befehl**. Es ist Teil des Steuerwerks
+  und hält den Befehl, nachdem er aus dem Speicher geladen wurde, während dieser verarbeitet wird.
+- Der **Befehlszähler** (*Program Counter*, PC) enthält die **Adresse des nächsten auszuführenden Befehls** – nicht den Befehl selbst.
+</Callout>
+
+<DragSort
+  client:visible
+  titel="Welche Aussage passt zu welchem Register?"
+  kategorien={['Befehlszähler', 'Befehlsregister']}
+  farben={['cu', 'alu']}
+  karten={[
+    { text: 'enthält eine Adresse', cat: 0 },
+    { text: 'wird nach jedem Befehl um 1 erhöht', cat: 0 },
+    { text: 'wird bei einem Sprung neu gesetzt', cat: 0 },
+    { text: 'enthält den Befehl selbst', cat: 1 },
+    { text: 'wird vom Befehlsdecodierer ausgewertet', cat: 1 },
+    { text: 'bekommt seinen Inhalt über den Datenbus', cat: 1 },
+  ]}
+/>
+
+## Datenverarbeitung – die Komponenten im Zusammenspiel
+
+An der Verarbeitung eines Befehls sind alle Bauteile beteiligt: Das Steuerwerk legt die Adresse aus dem Befehlszähler auf
+den **Adressbus** und meldet über den **Steuerbus**: „Ich will lesen“. Der Speicher liefert den Inhalt über den **Datenbus**.
+
+Ein Befehl wird dabei immer in **zwei Phasen** abgearbeitet:
+
+**1. Interpretationsphase** (*Fetch + Decode*)
+1. **Befehl laden:** Der Befehl wird von der Adresse im Befehlszähler ins Befehlsregister geholt, der Befehlszähler wird erhöht.
+2. **Befehl decodieren:** Der Befehlsdecodierer ermittelt, welcher Befehl es ist und mit welcher Adresse er arbeitet.
+3. **Daten holen:** Die benötigten Daten werden aus dem Speicher geholt.
+
+**2. Ausführungsphase** (*Execute*)
+1. Das **Rechenwerk** verarbeitet die decodierten Daten.
+2. Die **ALU führt den Befehl aus**.
+3. Das **Ergebnis** wird in den Speicher (bzw. Cache) geschrieben oder weiterverwendet.
+
+Probiere es an einer kleinen Maschine aus. Ihre Befehle sind 8 Bit lang: die ersten 4 Bit sind der **Opcode**
+(`0001` = LOAD, `0010` = ADD, `0011` = STORE, `1111` = HALT), die letzten 4 Bit die **Adresse**.
+
+<FdeSim client:visible />
+
+<Quiz
+  client:visible
+  frage="In welcher Phase wird der Befehlszähler erhöht?"
+  optionen={['Interpretationsphase – beim Laden des Befehls', 'Ausführungsphase – nach dem Rechnen', 'Nur bei Sprungbefehlen']}
+  richtig={0}
+  erklaerung="Direkt nach dem Laden zeigt der Befehlszähler schon auf den nächsten Befehl. Ein Sprungbefehl überschreibt ihn in der Ausführungsphase dann gegebenenfalls."
+/>
+
+<Callout typ="merke" titel="Der Von-Neumann-Zyklus">
+Befehl laden → decodieren → Daten holen → ausführen → Ergebnis speichern → nächster Befehl. Dieser Kreislauf wiederholt
+sich, bis das Programm endet – bei heutigen Prozessoren **milliardenfach pro Sekunde**.
+
+Genau diesen Zyklus kannst du beim Modellrechner **Johnny** Takt für Takt beobachten und selbst steuern:
+<a href={u('tutorial/08')}>Mission 8: Programmzähler & FETCH</a>.
+</Callout>
+
+<Vertiefung titel="Takt, Pipelines und Mehrkernprozessoren">
+Das Steuerwerk arbeitet im **Takt** eines Quarzoszillators. „3,5 GHz“ bedeutet 3,5 Milliarden Takte pro Sekunde.
+
+Moderne Prozessoren beschleunigen den Zyklus mit Tricks:
+
+- **Pipelining:** Wie am Fließband werden mehrere Befehle gleichzeitig in verschiedenen Phasen bearbeitet
+  (einer wird geladen, während der vorige decodiert und der vorvorige ausgeführt wird).
+- **Sprungvorhersage:** Der Prozessor „rät“, wie eine Verzweigung ausgeht, und arbeitet schon mal weiter.
+- **Mehrkernprozessoren:** Mehrere vollständige Rechen- und Steuerwerke auf einem Chip arbeiten parallel.
+</Vertiefung>

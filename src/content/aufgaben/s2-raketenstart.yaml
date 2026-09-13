@@ -1,0 +1,51 @@
+titel: Raketenstart
+kontext: spiele
+sterne: 2
+reihenfolge: 2
+kurz: Countdown bis 0 – dann zünden.
+leitfrage: Wie baut man eine Schleife, die von selbst aufhört?
+text: |
+  Ein Countdown: In Zelle **100** steht der Startwert des Timers.
+
+  Zähle den Timer bis **0** herunter. Wenn er 0 erreicht hat, setze die **Zündung** (Zelle **101**) auf **1**
+  und halte an.
+zellen:
+  "100": Timer
+  "101": Zündung
+start: |
+  100: 5
+tests:
+  - ein: { "100": 5 }
+    aus: { "100": 0, "101": 1 }
+  - name: Timer schon 0
+    ein: { "100": 0 }
+    aus: { "100": 0, "101": 1 }
+  - ein: { "100": 12 }
+    aus: { "100": 0, "101": 1 }
+tipps:
+  - "Du brauchst eine Schleife: Timer prüfen – wenn nicht 0, eins abziehen und wieder prüfen."
+  - |
+    Muster für „Ist die Zelle 0?“:
+    ```
+    TST zelle
+    JMP nein      ; nicht 0
+    ...           ; ist 0
+    ```
+  - |
+    ```
+    000: TST  100
+    001: JMP  004
+    002: INC  ___
+    003: HLT
+    004: DEC  ___
+    005: JMP  ___
+    ```
+loesung: |
+  TST 100
+  JMP 004
+  INC 101
+  HLT
+  DEC 100
+  JMP 000
+erklaerung: |
+  3 … 2 … 1 … 🚀 Die Schleife prüft **vor** jedem Herunterzählen – deshalb funktioniert sie auch, wenn der Timer schon bei 0 startet.

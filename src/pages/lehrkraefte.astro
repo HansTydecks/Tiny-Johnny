@@ -1,0 +1,239 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Callout from '../components/content/Callout.astro';
+import { KONTEXTE } from '../lib/content';
+import { levelId } from '../lib/tutorial';
+import { u } from '../lib/url';
+
+const kapitel = (await getCollection('kapitel')).sort((a, b) => a.data.reihenfolge - b.data.reihenfolge);
+const levels = (await getCollection('tutorial')).sort((a, b) => a.data.nummer - b.data.nummer);
+const aufgaben = (await getCollection('aufgaben')).sort(
+  (a, b) => a.data.kontext.localeCompare(b.data.kontext) || a.data.sterne - b.data.sterne || a.data.reihenfolge - b.data.reihenfolge,
+);
+const k = (slug: string) => kapitel.find((c) => c.id === slug)!;
+const plan = [
+  { ds: 1, titel: 'Überblick und Ein-/Ausgabe', inhalt: [k('ueberblick'), k('eingabe'), k('ausgabe')].map((c) => ({ href: u(`von-neumann/${c.id}`), t: c.data.titel })) },
+  { ds: 2, titel: 'Speicher', inhalt: [k('speicher'), k('speichertechnik'), k('ram-cache')].map((c) => ({ href: u(`von-neumann/${c.id}`), t: c.data.titel })) },
+  { ds: 3, titel: 'Bus, CPU und Bewertung', inhalt: [k('bus'), k('cpu'), k('bewertung'), k('bruecke')].map((c) => ({ href: u(`von-neumann/${c.id}`), t: c.data.titel })) },
+  { ds: 4, titel: 'Johnny: Speicher, Busse, Rechenwerk', inhalt: levels.slice(0, 5).map((l) => ({ href: u(`tutorial/${levelId(l.data.nummer)}`), t: `M${l.data.nummer}: ${l.data.titel}` })) },
+  { ds: 5, titel: 'Johnny: Befehle und Steuerwerk', inhalt: levels.slice(5, 9).map((l) => ({ href: u(`tutorial/${levelId(l.data.nummer)}`), t: `M${l.data.nummer}: ${l.data.titel}` })) },
+  { ds: 6, titel: 'Johnny: Sprünge, Bedingungen, Von Neumann', inhalt: [...levels.slice(9, 13).map((l) => ({ href: u(`tutorial/${levelId(l.data.nummer)}`), t: `M${l.data.nummer}: ${l.data.titel}` })), { href: u('aufgaben'), t: 'Aufgaben ★' }] },
+  { ds: 7, titel: 'Üben und vertiefen', inhalt: [{ href: u('aufgaben'), t: 'Aufgaben ★★ und ★★★' }, { href: u('tutorial/14'), t: 'M14: Neue Befehle (Vertiefung)' }, { href: u('original-johnny'), t: 'Transfer ins Original' }] },
+];
+const typLabel = { programm: 'Programmieren', trace: 'Programm lesen', fehlersuche: 'Fehlersuche' } as const;
+---
+
+<BaseLayout title="Für Lehrkräfte" description="Unterrichtsvorschlag, Lösungen und Hinweise zu Tiny Johnny.">
+  <div class="page">
+    <span class="eyebrow">Für Lehrkräfte</span>
+    <h1>Hinweise zum Einsatz</h1>
+    <p class="lead">
+      Tiny Johnny führt Schülerinnen und Schüler der Sekundarstufe II vom Von-Neumann-Modell zum Modellrechner Johnny.
+      Die Materialien sind für selbstständiges Arbeiten mit starker Führung angelegt: Jede Einheit beginnt mit einer
+      Leitfrage, Missionen und Aufgaben geben sofort Rückmeldung.
+    </p>
+
+    <h2>Vorschlag für den Unterrichtsverlauf</h2>
+    <p class="muted">Etwa 7 Doppelstunden. Kapitel und Missionen lassen sich einzeln verlinken, Vertiefungen sind aufklappbar und optional.</p>
+    <ol class="plan">
+      {
+        plan.map((p) => (
+          <li class="card">
+            <span class="ds">DS {p.ds}</span>
+            <b>{p.titel}</b>
+            <span class="items">
+              {p.inhalt.map((i) => (
+                <a href={i.href}>{i.t}</a>
+              ))}
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+
+    <h2>Didaktisches Konzept</h2>
+    <ul class="prose-list">
+      <li><b>Leitfragen als roter Faden:</b> „Woher weiß der Computer, was er tun soll?“ wird in Mission 8 beantwortet und in Mission 12/13 vertieft.</li>
+      <li><b>Schrittweiser Aufbau:</b> Im Tutorial erscheinen die Bauteile nacheinander (Speicher → Adressbus → Datenbus → Akku → Rechenwerk → Befehlsregister → Mikrocode → Programmzähler). Die SuS sind zunächst selbst das Steuerwerk.</li>
+      <li><b>Vorhersagen vor dem Ausführen:</b> Viele Schritte verlangen eine Vorhersage, bevor Johnny den Schritt ausführt.</li>
+      <li><b>Einheitliche Farbcodierung:</b> Speicher blau, Adressbus orange, Datenbus grün, Rechenwerk lila, Steuerwerk türkis – im Von-Neumann-Teil und im Simulator gleich.</li>
+      <li><b>Deutsch + Original-Kürzel:</b> Mikrobefehle heißen z. B. <code>ram→db</code> „Speicher → Datenbus“. So gelingt der <a href={u('original-johnny')}>Transfer ins Original</a>.</li>
+      <li><b>Differenzierung:</b> Aufgaben in drei Kontexten und drei Schwierigkeitsstufen, Tipps in drei Stufen, Musterlösung zuletzt.</li>
+    </ul>
+
+    <h2>Fachliche Hinweise zu verbreiteten Folieninhalten</h2>
+    <Callout typ="folie" titel="Diese Punkte sind auf der Website bewusst präzisiert">
+      <ul>
+        <li><b>Adressregister vs. Befehlszähler:</b> „Adressregister enthält die Adresse des nächsten Befehls“ beschreibt eigentlich den Befehlszähler. Ein Adressregister hält allgemein die gerade verwendete Adresse.</li>
+        <li><b>„BUS = Binary Unit System“</b> ist ein Backronym. Der Begriff stammt von lat. <i>omnibus</i> („für alle“). Beides wird genannt.</li>
+        <li><b>Bit-Zelle vs. Speicherstelle:</b> Ein DRAM-Kondensator speichert 1 Bit; eine adressierbare Speicherstelle umfasst meist 8 Bit.</li>
+        <li><b>DRAM-Refresh:</b> übernimmt der Speichercontroller (heute meist im Prozessor integriert).</li>
+        <li><b>Phasenmodell:</b> Wie auf den Folien gehört „Daten holen“ zur Interpretationsphase; bei Johnny liegt dieser Teil im Mikroprogramm des jeweiligen Befehls.</li>
+      </ul>
+    </Callout>
+
+    <h2>Johnny-Details, auf die man achten sollte</h2>
+    <ul class="prose-list">
+      <li><b>TST, INC, DEC und NULL überschreiben den Akkumulator</b> (sie arbeiten intern mit <code>db→acc</code>). Häufigste Fehlerquelle – Mission 11 und die Aufgaben „Fehlersuche“ und „Akku-Falle“ thematisieren das.</li>
+      <li><b>Keine negativen Zahlen:</b> <code>minus</code> sättigt bei 0, <code>plus</code> bei 19999. Aufgaben wie „Abstand“ und „Highscore“ nutzen das bewusst aus.</li>
+      <li><b>Ausführen stoppt</b> bei HLT oder wenn sich der Programmzähler nicht mehr ändert (z. B. Zelle mit 00.000).</li>
+      <li>Die Simulation entspricht Johnny 2.0 exakt (automatisch getestet: gleicher Mikrocode, gleiche Grenzen, .ram/.mc-Format).</li>
+    </ul>
+
+    <h2>Alle Aufgaben mit Lösungen</h2>
+    <p class="muted">Die Lösungen sind auch für SuS nach allen Tipps sichtbar. Jede Lösung wird bei jeder Änderung der Website automatisch gegen die Testfälle geprüft.</p>
+    <div class="tasks">
+      {
+        aufgaben.map((t) => (
+          <details class="task">
+            <summary>
+              <span class={`ctx c-${KONTEXTE[t.data.kontext].farbe}`}>{KONTEXTE[t.data.kontext].titel}</span>
+              <b>{t.data.titel}</b>
+              <span class="stars">{'★'.repeat(t.data.sterne)}</span>
+              <span class="chip">{typLabel[t.data.typ]}</span>
+            </summary>
+            <div class="task-body">
+              <p>{t.data.kurz}</p>
+              <pre>{t.data.loesung.trim()}</pre>
+              <a href={u(`aufgaben/${t.id}`)}>Aufgabe öffnen →</a>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+
+    <h2>Praktisches</h2>
+    <ul class="prose-list">
+      <li><b>Datenschutz:</b> Keine Anmeldung, kein Tracking. Fortschritt und Programme liegen nur im <code>localStorage</code> des Browsers.</li>
+      <li><b>Geteilte Geräte:</b> Den Fortschritt auf diesem Gerät kann man hier zurücksetzen: <button class="btn small" type="button" id="reset-progress">Fortschritt löschen</button></li>
+      <li><b>Programme einsammeln:</b> In der Sandbox erzeugt <b>Mehr → Link zum Programm kopieren</b> einen Link, der das Programm enthält. Alternativ .ram-Dateien speichern.</li>
+      <li><b>Offline:</b> Die Seite ist statisch und benötigt keine externen Dienste (auch keine Web-Schriftarten von Drittanbietern).</li>
+    </ul>
+
+    <h2>Inhalte selbst anpassen</h2>
+    <p>Alle Texte liegen als einfache Dateien im GitHub-Repository. Nach einer Änderung auf GitHub baut sich die Seite automatisch neu (ca. 2 Minuten).</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Was?</th><th>Wo?</th><th>Format</th></tr></thead>
+        <tbody>
+          <tr><td>Von-Neumann-Kapitel</td><td><code>src/content/kapitel/*.mdx</code></td><td>Markdown mit eingebetteten Bausteinen</td></tr>
+          <tr><td>Tutorial-Missionen</td><td><code>src/content/tutorial/level-XX.md</code></td><td>YAML: Schritte vom Typ info, aktion, quiz, vorhersage</td></tr>
+          <tr><td>Aufgaben</td><td><code>src/content/aufgaben/*.yaml</code></td><td>Text, Zellen, Startspeicher, Tests, Tipps, Lösung</td></tr>
+          <tr><td>Sandbox-Beispiele</td><td><code>src/content/beispiele/*.yaml</code></td><td>Titel, Beschreibung, Programm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Eine ausführliche Anleitung mit Beispielen steht in der
+      <a href="https://github.com/HansTydecks/Tiny-Johnny#inhalte-bearbeiten">README auf GitHub</a>.
+    </p>
+  </div>
+</BaseLayout>
+
+<script>
+  import { resetProgress } from '../lib/progress';
+  document.getElementById('reset-progress')?.addEventListener('click', () => {
+    if (confirm('Gesamten Fortschritt (Kapitel, Missionen, Aufgaben) in diesem Browser löschen?')) {
+      resetProgress();
+      try {
+        localStorage.removeItem('tinyjohnny:sandbox:v1');
+      } catch {}
+      alert('Fortschritt gelöscht.');
+    }
+  });
+</script>
+
+<style>
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  h1 {
+    margin: 6px 0 12px;
+  }
+  .lead {
+    font-size: 1.08rem;
+    color: var(--text-2);
+    max-width: 780px;
+  }
+  .plan {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .plan li {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ds {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.9rem;
+  }
+  .prose-list {
+    padding-left: 1.2em;
+  }
+  .prose-list li {
+    margin: 6px 0;
+  }
+  .tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .task {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .task summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+  .ctx {
+    font-size: 0.72rem;
+    font-weight: 750;
+    color: var(--c);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    min-width: 150px;
+  }
+  .stars {
+    color: var(--warn);
+  }
+  .task-body {
+    padding: 0 16px 14px;
+  }
+  .task-body pre {
+    margin: 6px 0 10px;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .table-wrap table {
+    min-width: 600px;
+  }
+</style>

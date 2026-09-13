@@ -1,0 +1,13 @@
+titel: Addition im Bonsai-Modus
+beschreibung: Ohne ADD – nur mit INC, DEC, TST und JMP. Schaltet automatisch in den Bonsai-Modus.
+modus: bonsai
+reihenfolge: 4
+programm: |
+  000: TST 101    ; b schon 0?
+  JMP 003         ; nein
+  HLT             ; ja → fertig, Summe steht in 100
+  DEC 101         ; b − 1
+  INC 100         ; a + 1
+  JMP 000
+  100: 4          ; a
+  3               ; b

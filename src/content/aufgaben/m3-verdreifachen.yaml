@@ -1,0 +1,42 @@
+titel: Verdreifachen
+kontext: mathe
+sterne: 1
+reihenfolge: 3
+kurz: Multiplizieren mit 3 – ohne Multiplikationsbefehl.
+leitfrage: Wie rechnet eine CPU, die gar nicht multiplizieren kann?
+text: |
+  In Zelle **100** steht eine Zahl **n**. Speichere **3 · n** in Zelle **101**.
+
+  Johnny hat keinen Befehl zum Multiplizieren!
+zellen:
+  "100": n
+  "101": 3 · n
+start: |
+  100: 5
+tests:
+  - ein: { "100": 5 }
+    aus: { "101": 15 }
+  - ein: { "100": 0 }
+    aus: { "101": 0 }
+  - ein: { "100": 4000 }
+    aus: { "101": 12000 }
+tipps:
+  - 3 · n ist dasselbe wie n + n + n.
+  - Hole n in den Akku und addiere n noch zweimal.
+  - |
+    ```
+    000: TAKE 100
+    001: ADD  ___
+    002: ADD  ___
+    003: SAVE 101
+    004: HLT
+    ```
+loesung: |
+  TAKE 100
+  ADD 100
+  ADD 100
+  SAVE 101
+  HLT
+erklaerung: |
+  Mehrmals dieselbe Zelle zu addieren ist völlig in Ordnung – gelesen wird ja nur eine Kopie.
+  Für 100 · n bräuchte man so aber 100 Befehle. Besser geht es mit einer **Schleife** (Aufgabe *Multiplikation*).

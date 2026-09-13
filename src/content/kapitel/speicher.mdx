@@ -1,0 +1,105 @@
+---
+titel: Das Speicherwerk
+kurz: Adressen, Arbeitsspeicher und die Speicherhierarchie.
+leitfrage: Wo und wie merkt sich ein Computer Programme und Daten?
+reihenfolge: 4
+farbe: mem
+dauer: ca. 30 Minuten
+---
+import AddressLines from '../../components/storage/AddressLines.svelte';
+import MemoryPyramid from '../../components/storage/MemoryPyramid.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+import { u } from '../../lib/url';
+
+## Programme und Daten – im selben Speicher
+
+Im Von-Neumann-Rechner liegen im **Arbeitsspeicher** zwei Dinge gemeinsam:
+
+- das **Programm** – die Bearbeitungsvorschrift für die Daten, also eine Folge von Befehlen,
+- die **Daten** – die Werte, mit denen das Programm arbeitet.
+
+Beides sind nur Bitmuster. Dem Speicher ist es egal, ob `00000010` eine Zahl oder ein Befehl ist.
+
+## Adressen – ein durchnummerierter Speicher
+
+Der Speicher ist in viele gleich große **Speicherstellen** eingeteilt, die fortlaufend nummeriert sind. Diese Nummer
+heißt **Adresse**. So kann man sagen: *An der Speicherstelle 305 steht das Datenelement `11011011`.*
+
+<Callout typ="folie" titel="Bit, Byte und Speicherstelle – nicht verwechseln!">
+- Ein **Bit** ist die kleinste Informationseinheit (0 oder 1). Im Arbeitsspeicher wird jedes Bit in einer winzigen
+  **Speicherzelle** gespeichert – beim DRAM ein Kondensator: geladen = 1, ungeladen = 0.
+- Eine adressierbare **Speicherstelle** fasst meist **8 Bit = 1 Byte** zusammen. Sie hat eine Adresse.
+- Johnny vereinfacht: Eine Speicherstelle enthält dort eine ganze fünfstellige Dezimalzahl.
+</Callout>
+
+Wie wählt die CPU eine Speicherstelle aus? Über die Leitungen des **Adressbusses**. Jede Leitung führt entweder Strom (1)
+oder keinen (0). Probiere aus, wie viele Speicherstellen sich mit einer bestimmten Anzahl Leitungen unterscheiden lassen:
+
+<AddressLines client:visible />
+
+<Callout typ="merke">
+Mit **n** Adressleitungen lassen sich **2ⁿ** Speicherstellen ansprechen. **8 Adressleitungen = 2⁸ = 256 Speicherstellen.**
+</Callout>
+
+## Der Arbeitsspeicher (RAM)
+
+**RAM** steht für *Random Access Memory* – Speicher mit **direktem (wahlfreiem) Zugriff**. Jede Speicherstelle kann über
+ihre Adresse sofort erreicht werden, egal wo sie liegt. (Bei einem Magnetband dagegen müsste man erst bis zur richtigen
+Stelle spulen.)
+
+- enthält das **laufende Programm** und seine **Daten**
+- besteht aus sehr vielen gleich großen Zellen (je 1 Bit, beim DRAM ein Kondensator)
+- ist **sehr schnell**
+- ist **flüchtig**: Nach dem Abschalten sind alle Daten weg
+
+<Callout typ="info" titel="Zugriffszeit">
+Die **Zugriffszeit** ist die Zeit zwischen dem Anlegen der Adresse und dem Bereitstellen der Daten. Beim Arbeitsspeicher
+muss sie sehr gering sein – typisch sind etwa 50 bis 100 Nanosekunden (milliardstel Sekunden).
+</Callout>
+
+Wie genau ein Bit im RAM gespeichert wird und warum es ständig „aufgefrischt“ werden muss, erfährst du im Kapitel
+<a href={u('von-neumann/speichertechnik')}>Speichertechnik</a>.
+
+## Die Speicherhierarchie
+
+Ein Computer hat nicht nur *einen* Speicher, sondern viele verschiedene. Warum? Weil kein Speicher gleichzeitig
+schnell, groß, billig und dauerhaft ist. Deshalb kombiniert man sie in einer **Hierarchie**:
+
+<MemoryPyramid client:visible />
+
+| Speicher | Größe | Geschwindigkeit | räumliche Nähe zur ALU |
+|---|---|---|---|
+| Register | winzig | am schnellsten | im Rechenwerk |
+| Cache L1 / L2 / L3 | klein | sehr schnell | im Prozessor |
+| Arbeitsspeicher (RAM) | mittel (GB) | schnell | auf dem Mainboard |
+| SSD / HDD | sehr groß (GB–TB) | langsam | am weitesten entfernt |
+
+## SSD und HDD – der Massenspeicher
+
+**SSD** (*Solid State Drive*) und **HDD** (*Hard Disk Drive*) sind die dauerhaften Speicher eines Computers:
+
+- sehr viele Speicherzellen (Gigabyte bis Terabyte)
+- **nicht flüchtig** – auch ohne Strom bleiben die Daten erhalten
+- enthalten alle möglichen Daten, Befehle und Programme (auch wenn sie gerade nicht laufen)
+- deutlich **langsamer** als RAM
+- am weitesten von der CPU entfernt
+
+Wenn du ein Programm startest, wird es deshalb **von der SSD in den Arbeitsspeicher geladen**. Erst dort kann die CPU
+es ausführen.
+
+<Quiz
+  client:visible
+  frage="Welche Speicher verlieren ihre Daten, wenn der Strom ausfällt?"
+  optionen={['Register', 'Cache', 'Arbeitsspeicher (RAM)', 'SSD', 'Festplatte (HDD)']}
+  richtig={[0, 1, 2]}
+  erklaerung="Register, Cache und RAM sind flüchtig. SSD und HDD sind nicht flüchtig – deshalb speichert man Dokumente dort."
+/>
+
+<Vertiefung titel="Warum nicht einfach alles in den schnellsten Speicher?">
+Schneller Speicher ist teuer und braucht viel Platz auf dem Chip. SRAM für Caches braucht pro Bit sechs Transistoren,
+DRAM nur einen Transistor und einen Kondensator, Flash noch weniger Fläche. Außerdem gilt: Je größer ein Speicher ist,
+desto länger sind die Leitungen und desto langsamer wird er. Die Hierarchie nutzt aus, dass Programme meist
+nur mit einem kleinen Teil ihrer Daten gleichzeitig arbeiten (*Lokalitätsprinzip*).
+</Vertiefung>

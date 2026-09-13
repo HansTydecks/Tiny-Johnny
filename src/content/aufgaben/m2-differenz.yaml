@@ -1,0 +1,45 @@
+titel: Differenz – und eine Überraschung
+kontext: mathe
+sterne: 1
+reihenfolge: 2
+kurz: a − b berechnen und herausfinden, was bei negativen Ergebnissen passiert.
+leitfrage: Wie geht Johnny mit Ergebnissen unter 0 um?
+text: |
+  In Zelle **100** steht **a**, in Zelle **101** steht **b**.
+  Berechne **a − b** und speichere das Ergebnis in Zelle **102**.
+
+  Teste dein Programm danach auch mit a = 4 und b = 9. Was fällt dir auf?
+zellen:
+  "100": a
+  "101": b
+  "102": Differenz
+start: |
+  100: 9
+  4
+tests:
+  - ein: { "100": 9, "101": 4 }
+    aus: { "102": 5 }
+  - name: b größer als a
+    ein: { "100": 4, "101": 9 }
+    aus: { "102": 0 }
+  - ein: { "100": 100, "101": 100 }
+    aus: { "102": 0 }
+tipps:
+  - Welche Zahl muss zuerst in den Akku – a oder b?
+  - "Holen – subtrahieren – speichern – anhalten."
+  - |
+    ```
+    000: TAKE 100
+    001: ___  101
+    002: SAVE ___
+    003: HLT
+    ```
+loesung: |
+  TAKE 100
+  SUB 101
+  SAVE 102
+  HLT
+erklaerung: |
+  Johnny kennt **keine negativen Zahlen**: 4 − 9 ergibt **0**. Echte Prozessoren nutzen dafür das
+  *Zweierkomplement* und ein Statusregister mit Vorzeichen- und Überlauf-Flag.
+  Diese „Sättigung“ kann man aber auch geschickt ausnutzen – siehe Aufgabe *Abstand zweier Zahlen*.

@@ -1,0 +1,71 @@
+---
+titel: Das Ausgabewerk
+kurz: Pixel, Subpixel und Bildspeicher – wie Zahlen zu Bildern werden.
+leitfrage: Wie macht der Computer seine Ergebnisse für uns sichtbar?
+reihenfolge: 3
+farbe: io
+dauer: ca. 20 Minuten
+---
+import PixelZoom from '../../components/io/PixelZoom.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+
+Das **Ausgabewerk** ist das Gegenstück zum Eingabewerk: Es verwandelt Bitmuster aus dem Speicher wieder in etwas,
+das wir wahrnehmen können – Licht, Schall oder Bewegung. Das wichtigste Ausgabegerät ist der **Bildschirm**.
+
+## Vom Speicher zum Bild
+
+Ein Bild auf dem Bildschirm ist für den Computer nichts anderes als eine lange Liste von Zahlen im **Bildspeicher**
+(*Framebuffer*) der Grafikkarte. Für jedes Pixel ist dort seine Farbe gespeichert. Der Monitor liest diesen Speicher
+viele Male pro Sekunde aus (**Bildwiederholrate**, z. B. 60 Hz) und stellt ihn dar.
+
+## Pixel und Subpixel
+
+Ein Bildschirm besteht aus einem Raster winziger Bildpunkte, den **Pixeln**. Jedes Pixel besteht wiederum aus drei
+**Subpixeln** in Rot, Grün und Blau. Durch unterschiedlich helles Leuchten der drei Subpixel entsteht jede Farbe
+(**additive Farbmischung**). Vergrößere das Bild und tippe einzelne Pixel an:
+
+<PixelZoom client:visible />
+
+<Callout typ="folie" titel="Rechenbeispiel: Full HD">
+1920 × 1080 Pixel = 2 073 600 Pixel. Bei 24 Bit Farbtiefe braucht jedes Pixel 3 Byte:
+2 073 600 × 3 Byte = 6 220 800 Byte ≈ **5,9 MB pro Bild**. Bei 60 Bildern pro Sekunde müssen rund **3 Gigabit pro Sekunde**
+zum Monitor übertragen werden – deshalb brauchen Bildschirmkabel wie HDMI und DisplayPort so hohe Datenraten.
+</Callout>
+
+<Quiz
+  client:visible
+  frage="Wie viele verschiedene Farben kann ein Pixel mit 24 Bit Farbtiefe darstellen?"
+  optionen={['24', '256', 'etwa 16,7 Millionen', 'unendlich viele']}
+  richtig={2}
+  erklaerung="Je 8 Bit für Rot, Grün und Blau ergeben 2²⁴ = 16 777 216 Kombinationen."
+/>
+
+## LCD und OLED
+
+| | LCD | OLED |
+|---|---|---|
+| Licht | eine **Hintergrundbeleuchtung** leuchtet ständig | jedes Subpixel **leuchtet selbst** |
+| Farbe | Flüssigkristalle wirken als „Lichtventile“, Farbfilter färben das Licht | organische Leuchtdioden in Rot, Grün, Blau |
+| Schwarz | nie ganz schwarz (Licht dringt durch) | echtes Schwarz (Pixel aus) |
+| Einsatz | Monitore, günstige Displays | Smartphones, hochwertige Fernseher |
+
+## Weitere Ausgabegeräte
+
+- **Lautsprecher:** Ein **D/A-Wandler** (Digital-Analog-Wandler) macht aus Zahlenwerten eine schwankende Spannung, die die Membran bewegt.
+- **Drucker:** setzt Bildpunkte aus Tinte oder Toner aufs Papier – subtraktive Farbmischung mit Cyan, Magenta, Gelb und Schwarz.
+- **Aktoren:** Motoren, LEDs, Relais – etwa in Robotern oder im Smart Home.
+
+<Callout typ="merke">
+- Das Ausgabewerk wandelt Bitmuster in **wahrnehmbare Signale** um.
+- Ein Bild besteht aus **Pixeln**, jedes Pixel aus **drei Subpixeln** (RGB).
+- Bilder brauchen viel **Speicher** und viel **Datentransport** – eine große Aufgabe für Bus und Grafikspeicher.
+</Callout>
+
+<Vertiefung titel="Warum Grafikkarten einen eigenen Prozessor haben">
+Für jedes Bild müssen Millionen Pixel berechnet werden – bei Spielen sogar mit Licht, Schatten und 3D-Geometrie.
+Eine CPU arbeitet Befehle **nacheinander** ab (siehe Bewertung der Von-Neumann-Architektur). Eine GPU besitzt dagegen
+tausende kleine Rechenkerne, die **gleichzeitig** viele einfache Rechnungen ausführen. Das macht sie heute auch für
+künstliche Intelligenz so wichtig.
+</Vertiefung>

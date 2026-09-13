@@ -1,0 +1,15 @@
+titel: Multiplikation
+beschreibung: Berechnet a · b durch wiederholtes Addieren. Ergebnis in Zelle 102.
+reihenfolge: 3
+programm: |
+  000: NULL 102   ; Ergebnis := 0
+  TST 101         ; b schon 0?
+  JMP 004         ; nein → noch einmal addieren
+  HLT             ; ja → fertig
+  TAKE 102        ; Ergebnis holen
+  ADD 100         ; a dazu
+  SAVE 102        ; zurückschreiben
+  DEC 101         ; b − 1
+  JMP 001
+  100: 6          ; a
+  7               ; b

@@ -1,0 +1,65 @@
+titel: Fehlersuche – der Akku lügt
+kontext: klassiker
+sterne: 2
+reihenfolge: 5
+typ: fehlersuche
+kurz: Ein Programm rechnet falsch. Finde und behebe den Fehler.
+leitfrage: Wie findet man einen Fehler in einem Maschinenprogramm?
+text: |
+  Das Programm im Speicher soll die Summe **1 + 2 + … + n** berechnen (n steht in Zelle **100**)
+  und in Zelle **101** speichern. Für n = 3 sollte also 6 herauskommen.
+
+  Es liefert aber falsche Ergebnisse. Führe es mit **Makroschritten** aus, beobachte den **Akkumulator**
+  und repariere das Programm.
+zellen:
+  "100": n
+  "101": Summe
+start: |
+  000: NULL 101
+  TAKE 101
+  TST 100
+  JMP 005
+  HLT
+  ADD 100
+  SAVE 101
+  DEC 100
+  JMP 001
+  100: 3
+tests:
+  - ein: { "100": 3 }
+    aus: { "101": 6 }
+  - ein: { "100": 0 }
+    aus: { "101": 0 }
+  - ein: { "100": 1 }
+    aus: { "101": 1 }
+  - ein: { "100": 10 }
+    aus: { "101": 55 }
+tipps:
+  - Beobachte den Akku direkt vor und nach dem Befehl in Zelle 002. Stimmt danach noch, was TAKE 101 geholt hat?
+  - "**TST** holt die getestete Zelle in den Akkumulator – das vorher geholte Zwischenergebnis ist weg. Der Test muss also an eine andere Stelle."
+  - |
+    Richtige Reihenfolge: erst testen, dann holen.
+    ```
+    000: NULL 101
+    001: TST  100
+    002: JMP  ___
+    003: HLT
+    004: TAKE 101
+    005: ADD  100
+    006: SAVE 101
+    007: DEC  100
+    008: JMP  ___
+    ```
+loesung: |
+  NULL 101
+  TST 100
+  JMP 004
+  HLT
+  TAKE 101
+  ADD 100
+  SAVE 101
+  DEC 100
+  JMP 001
+erklaerung: |
+  Der Fehler: `TST 100` überschrieb den Akku, der gerade die Summe enthielt. Stattdessen wurde n + n addiert.
+  **Debugging** heißt: Schritt für Schritt ausführen und vergleichen, was passiert und was passieren *sollte*.

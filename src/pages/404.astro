@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { u } from '../lib/url';
+---
+
+<BaseLayout title="Seite nicht gefunden">
+  <div class="page">
+    <p class="code mono">JMP 404</p>
+    <h1>Diese Adresse gibt es nicht.</h1>
+    <p class="muted">Der Programmzähler zeigt ins Leere – in dieser Speicherzelle steht kein Befehl.</p>
+    <a class="btn primary" href={u('')}>Zur Startseite</a>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 80px 20px;
+    text-align: center;
+  }
+  .code {
+    font-size: 1.1rem;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  h1 {
+    margin: 8px 0;
+  }
+</style>

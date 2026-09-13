@@ -1,0 +1,141 @@
+/*
+ * Design-Tokens. Jede Bauteilgruppe hat eine feste Farbe – auf der ganzen Website gleich,
+ * damit die SuS Von-Neumann-Modell und Johnny sofort miteinander verbinden.
+ */
+:root {
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f1f3f9;
+  --surface-3: #e8ebf3;
+  --border: #e2e6ef;
+  --border-strong: #cbd2e0;
+  --text: #0e1526;
+  --text-2: #465167;
+  --text-3: #6b7489;
+  --accent: #4f46e5;
+  --accent-2: #4338ca;
+  --accent-soft: #eef0ff;
+  --on-accent: #ffffff;
+
+  /* Bauteilfarben */
+  --mem: #2563eb;
+  --mem-soft: #e3edff;
+  --abus: #c26a05;
+  --abus-soft: #fff1d6;
+  --dbus: #05875f;
+  --dbus-soft: #d9f6ea;
+  --alu: #7c3aed;
+  --alu-soft: #efe7ff;
+  --cu: #0a7ea4;
+  --cu-soft: #dcf3fb;
+  --io: #d61f52;
+  --io-soft: #ffe6ee;
+  --sbus: #64748b;
+  --sbus-soft: #e9edf3;
+
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --err: #c81e1e;
+  --err-soft: #fee2e2;
+
+  --radius-s: 8px;
+  --radius: 14px;
+  --radius-l: 20px;
+  --shadow-s: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 4px 16px rgb(15 23 42 / 0.06);
+  --shadow-l: 0 2px 6px rgb(15 23 42 / 0.06), 0 18px 48px rgb(15 23 42 / 0.1);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+
+  --header-h: 60px;
+  --content-w: 760px;
+  --wide-w: 1180px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0a0f1c;
+    --surface: #111827;
+    --surface-2: #172033;
+    --surface-3: #1e2940;
+    --border: #243049;
+    --border-strong: #34425f;
+    --text: #e8ecf5;
+    --text-2: #b0b9cc;
+    --text-3: #8791a7;
+    --accent: #8b87ff;
+    --accent-2: #a5a1ff;
+    --accent-soft: #1f2250;
+    --on-accent: #0b0d24;
+    --mem: #6ea8ff;
+    --mem-soft: #13254a;
+    --abus: #f5a524;
+    --abus-soft: #3a2a0c;
+    --dbus: #34d399;
+    --dbus-soft: #0c3326;
+    --alu: #b794ff;
+    --alu-soft: #2a1d4d;
+    --cu: #38c5ee;
+    --cu-soft: #0b3140;
+    --io: #ff6b93;
+    --io-soft: #43142a;
+    --sbus: #9aa7bd;
+    --sbus-soft: #1f2a3d;
+    --ok: #4ade80;
+    --ok-soft: #0f3320;
+    --warn: #fbbf24;
+    --warn-soft: #3a2c0a;
+    --err: #f87171;
+    --err-soft: #3d1414;
+    --shadow-s: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 6px 20px rgb(0 0 0 / 0.3);
+    --shadow-l: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 48px rgb(0 0 0 / 0.45);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0a0f1c;
+  --surface: #111827;
+  --surface-2: #172033;
+  --surface-3: #1e2940;
+  --border: #243049;
+  --border-strong: #34425f;
+  --text: #e8ecf5;
+  --text-2: #b0b9cc;
+  --text-3: #8791a7;
+  --accent: #8b87ff;
+  --accent-2: #a5a1ff;
+  --accent-soft: #1f2250;
+  --on-accent: #0b0d24;
+  --mem: #6ea8ff;
+  --mem-soft: #13254a;
+  --abus: #f5a524;
+  --abus-soft: #3a2a0c;
+  --dbus: #34d399;
+  --dbus-soft: #0c3326;
+  --alu: #b794ff;
+  --alu-soft: #2a1d4d;
+  --cu: #38c5ee;
+  --cu-soft: #0b3140;
+  --io: #ff6b93;
+  --io-soft: #43142a;
+  --sbus: #9aa7bd;
+  --sbus-soft: #1f2a3d;
+  --ok: #4ade80;
+  --ok-soft: #0f3320;
+  --warn: #fbbf24;
+  --warn-soft: #3a2c0a;
+  --err: #f87171;
+  --err-soft: #3d1414;
+  --shadow-s: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 6px 20px rgb(0 0 0 / 0.3);
+  --shadow-l: 0 2px 6px rgb(0 0 0 / 0.4), 0 18px 48px rgb(0 0 0 / 0.45);
+  color-scheme: dark;
+}

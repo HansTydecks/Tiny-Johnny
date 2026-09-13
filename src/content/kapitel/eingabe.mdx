@@ -1,0 +1,92 @@
+---
+titel: Das Eingabewerk
+kurz: Tastatur, Maus und Co. – vom Tastendruck zum Zeichen im Speicher.
+leitfrage: Wie gelangen Informationen aus der realen Welt in den Computer?
+reihenfolge: 2
+farbe: io
+dauer: ca. 25 Minuten
+---
+import KeyboardSim from '../../components/io/KeyboardSim.svelte';
+import MouseSensor from '../../components/io/MouseSensor.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+
+Ein Computer kennt nur Zahlen – genauer: Bitmuster aus Nullen und Einsen. Die Welt um ihn herum besteht aber aus
+Tastendrücken, Bewegungen, Licht und Schall. Das **Eingabewerk** ist die Übersetzungsstelle dazwischen.
+
+## Aufgabe des Eingabewerks
+
+Jedes Eingabegerät erfüllt im Kern drei Aufgaben:
+
+1. **Erfassen** einer physikalischen Größe (Druck, Bewegung, Licht, Schall …),
+2. **Umwandeln** in ein digitales Signal (meist durch einen eigenen kleinen Controller-Chip),
+3. **Übertragen** über eine Schnittstelle (USB, Bluetooth …) an den Computer, wo die Daten über den Bus in den Speicher gelangen.
+
+## Die Tastatur
+
+Unter den Tasten liegt ein Gitter aus Leiterbahnen: die **Tastenmatrix**. Jede Taste sitzt an der Kreuzung einer Zeile
+und einer Spalte. Wird sie gedrückt, verbindet sie die beiden Leitungen. Der **Tastatur-Controller** prüft viele hundert
+Mal pro Sekunde alle Zeilen und Spalten („Scannen“) und erkennt so, welche Taste gedrückt ist.
+
+Aus der Position der Taste erzeugt er einen **Scancode**. Erst das **Betriebssystem** macht daraus mithilfe des
+eingestellten **Tastaturlayouts** ein Zeichen.
+
+<KeyboardSim client:visible />
+
+<Callout typ="folie" titel="Warum die Z-Taste den Code für „Y“ sendet">
+Scancodes beschreiben die **Position** einer Taste, nicht ihre Beschriftung. Auf deutschen und amerikanischen Tastaturen
+liegen Y und Z vertauscht – die Hardware ist aber gleich. Deshalb stellt man im Betriebssystem das Layout ein.
+Stimmt es nicht, erscheint beim Druck auf „Z“ plötzlich ein „y“.
+</Callout>
+
+<Quiz
+  client:visible
+  frage="Du drückst auf einer deutschen Tastatur die Taste „Z“. Welche Aussage stimmt?"
+  optionen={[
+    'Die Tastatur sendet den Scancode 0x1C (Position von „Y“ auf US-Tastaturen), das Betriebssystem macht daraus „z“.',
+    'Die Tastatur sendet direkt den Buchstaben „z“ als Unicode-Zeichen.',
+    'Die Tastatur sendet den Binärcode 01111010, der Treiber leitet ihn nur weiter.',
+  ]}
+  richtig={0}
+  erklaerung="Die Tastatur kennt keine Buchstaben, nur Positionen. Die Übersetzung in Zeichen passiert im Betriebssystem."
+/>
+
+## Die Maus
+
+Eine moderne optische Maus enthält eine winzige **Kamera**: Eine LED oder ein Laser beleuchtet die Unterlage schräg, sodass
+selbst kleinste Unebenheiten sichtbar werden. Der Sensor macht **mehrere tausend Bilder pro Sekunde** und vergleicht jedes
+Bild mit dem vorherigen. Aus der Verschiebung des Musters berechnet ein Signalprozessor die Bewegung.
+
+<MouseSensor client:visible />
+
+Zwei Kennzahlen sind wichtig:
+
+- **Auflösung (DPI/CPI):** Wie viele Bewegungsschritte („Counts“) die Maus pro Zoll (2,54 cm) meldet.
+- **Abfragerate (Polling-Rate):** Wie oft der Computer die Maus nach neuen Daten fragt – typisch 125 bis 1000 Mal pro Sekunde.
+
+## Weitere Eingabegeräte
+
+| Gerät | erfasst | Umwandlung |
+|---|---|---|
+| Mikrofon | Schallwellen | **A/D-Wandler** misst die Spannung z. B. 44 100-mal pro Sekunde mit 16 Bit |
+| Kamera | Licht | Bildsensor mit Millionen lichtempfindlicher Zellen (je Pixel Helligkeit für Rot, Grün, Blau) |
+| Touchscreen | Berührung | Änderung der elektrischen Kapazität an Kreuzungspunkten – ähnlich wie die Tastenmatrix |
+| Sensoren | Temperatur, Beschleunigung, Licht … | analoger Messwert → A/D-Wandler → Zahl |
+
+<Callout typ="merke">
+- Eingabegeräte **erfassen** physikalische Größen und **wandeln** sie in Bitmuster um.
+- Die Daten gelangen über eine Schnittstelle und den **Bus** in den **Speicher** – erst dort kann die CPU sie verarbeiten.
+- Oft sind mehrere Übersetzungsschritte beteiligt (Controller, Treiber, Betriebssystem).
+</Callout>
+
+<Vertiefung titel="Polling oder Interrupt – woher weiß die CPU, dass eine Taste gedrückt wurde?">
+Es gibt zwei grundsätzliche Verfahren:
+
+- **Polling (Abfragen):** Die CPU fragt ein Gerät regelmäßig „Hast du etwas Neues?“ – auch wenn nichts passiert ist. Das kostet Rechenzeit.
+- **Interrupt (Unterbrechung):** Das Gerät meldet sich über eine Leitung des **Steuerbusses**. Das Steuerwerk unterbricht das laufende
+  Programm, bearbeitet die Eingabe und macht dann dort weiter, wo es war.
+
+Bei USB fragt der USB-Controller die Geräte zwar regelmäßig ab, meldet neue Daten dann aber per Interrupt an den Prozessor.
+Johnny kennt übrigens keine Interrupts – dort gibt es gar keine Ein- und Ausgabe, man schreibt direkt in den Speicher.
+</Vertiefung>

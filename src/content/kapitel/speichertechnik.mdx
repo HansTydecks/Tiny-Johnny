@@ -1,0 +1,110 @@
+---
+titel: Speichertechnik
+kurz: Elektronisch, magnetisch, optisch – drei Arten, ein Bit festzuhalten.
+leitfrage: Wie kann man ein Bit physikalisch speichern – mit Strom, Magnetismus oder Licht?
+reihenfolge: 5
+farbe: mem
+dauer: ca. 35 Minuten
+---
+import DramSim from '../../components/storage/DramSim.svelte';
+import HddSim from '../../components/storage/HddSim.svelte';
+import OpticalSim from '../../components/storage/OpticalSim.svelte';
+import DragSort from '../../components/learning/DragSort.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+
+Ein Bit kennt nur zwei Zustände: 0 und 1. Um es zu speichern, braucht man also etwas, das **zwei unterscheidbare
+Zustände** annehmen und halten kann. Dafür gibt es drei grundlegende physikalische Prinzipien:
+
+| Prinzip | Zustände | Beispiele |
+|---|---|---|
+| **elektronisch** | elektrische Ladung vorhanden / nicht vorhanden | DRAM (Arbeitsspeicher), SRAM (Cache), Flash (SSD, USB-Stick) |
+| **(elektro)magnetisch** | Magnetisierung in die eine / andere Richtung | Festplatte (HDD), Magnetband |
+| **optisch** | Licht wird stark / schwach reflektiert | CD, DVD, Blu-ray |
+
+## Elektronisch: DRAM und Flash
+
+### DRAM – der Arbeitsspeicher
+
+Im **DRAM** (*Dynamic Random Access Memory*) besteht jede Speicherzelle aus einem winzigen **Kondensator** und einem
+**Transistor**, der als Schalter dient. Ist der Kondensator geladen, steht dort eine 1, sonst eine 0.
+
+Das Problem: Die Kondensatoren sind so klein, dass sie ihre Ladung **nach wenigen Millisekunden verlieren** – die
+Information wäre weg. Deshalb muss jede Speicherzelle regelmäßig (etwa alle 50 ms) **aufgefrischt** werden: Sie wird
+gelesen und neu geschrieben. Das nennt man **Refresh** – daher das „dynamisch“ im Namen.
+
+Probiere es aus: Schalte den Refresh ab oder verlängere das Intervall – und beobachte, was mit den Daten passiert.
+
+<DramSim client:visible />
+
+<Callout typ="folie" titel="Wer macht den Refresh?">
+Der Refresh läuft „nebenbei“, ohne dass Programme davon etwas merken. Zuständig ist der **Speichercontroller**, der heute
+meist direkt im Prozessor sitzt. Die nötigen Signale gehören zu den Aufgaben des **Steuerbusses**.
+</Callout>
+
+### SRAM – der Cache
+
+**SRAM** (*Static RAM*) speichert jedes Bit in einer Schaltung aus sechs Transistoren (einem *Flipflop*). Solange Strom
+fließt, bleibt der Zustand stabil – **kein Refresh nötig**. SRAM ist schneller als DRAM, braucht aber viel mehr Platz
+und ist teurer. Er wird deshalb für die **Caches** im Prozessor verwendet.
+
+### Flash – SSD und USB-Stick
+
+Beim **Flash-Speicher** werden Elektronen durch eine hauchdünne Isolierschicht in ein **Floating Gate** gedrückt und dort
+eingesperrt. Sie bleiben jahrelang dort – auch **ohne Strom**. Flash ist deshalb **nicht flüchtig**. Nachteil: Jede Zelle
+verträgt nur eine begrenzte Zahl von Schreibvorgängen.
+
+## Magnetisch: die Festplatte
+
+Eine **Festplatte** (HDD) enthält mehrere rotierende Scheiben mit einer magnetisierbaren Beschichtung. Ein
+**Schreib-/Lesekopf** schwebt wenige Nanometer über der Oberfläche. Beim Schreiben richtet sein Magnetfeld winzige
+Bereiche in die eine oder andere Richtung aus; beim Lesen erkennt er diese Richtungen bzw. ihre Wechsel.
+
+Weil sich Kopf und Scheibe **mechanisch** bewegen müssen, dauert ein Zugriff lange:
+
+- **Suchzeit:** Der Kopf muss zur richtigen Spur fahren.
+- **Rotationslatenz:** Man muss warten, bis der richtige Sektor unter dem Kopf vorbeikommt.
+
+<HddSim client:visible />
+
+## Optisch: CD, DVD und Blu-ray
+
+Auf einer optischen Disc liegt eine spiralförmige Datenspur aus **Pits** (Vertiefungen) und **Lands** (Flächen).
+Ein **Laser** tastet die Spur ab: Auf einem Land wird er stark reflektiert, bei einem Pit schwächer. Eine Fotodiode misst
+die Helligkeit. Ein **Übergang** zwischen Pit und Land bedeutet eine **1**, gleichbleibende Fläche eine **0**.
+
+<OpticalSim client:visible />
+
+## Vergleich
+
+| | DRAM | Flash (SSD) | Festplatte | Blu-ray |
+|---|---|---|---|---|
+| Prinzip | elektronisch | elektronisch | magnetisch | optisch |
+| flüchtig? | ja | nein | nein | nein |
+| Zugriffszeit | ≈ 80 ns | ≈ 0,1 ms | ≈ 10 ms | ≈ 100 ms |
+| bewegliche Teile | nein | nein | ja | ja |
+| typische Nutzung | laufende Programme | Betriebssystem, Programme | große Datenmengen | Filme, Archiv |
+
+<DragSort
+  client:visible
+  titel="Welches physikalische Prinzip steckt dahinter?"
+  kategorien={['elektronisch', 'magnetisch', 'optisch']}
+  farben={['mem', 'abus', 'alu']}
+  karten={[
+    { text: 'Arbeitsspeicher (DRAM)', cat: 0 },
+    { text: 'Prozessor-Cache (SRAM)', cat: 0 },
+    { text: 'SSD', cat: 0 },
+    { text: 'USB-Stick', cat: 0 },
+    { text: 'Festplatte (HDD)', cat: 1 },
+    { text: 'Magnetband', cat: 1, info: 'bis heute in Rechenzentren zur Archivierung' },
+    { text: 'CD', cat: 2 },
+    { text: 'Blu-ray', cat: 2 },
+  ]}
+/>
+
+<Vertiefung titel="Wie lange halten Daten eigentlich?">
+Flüchtiger Speicher (DRAM) hält Daten nur Millisekunden ohne Refresh, SRAM nur solange Strom fließt. Flash-Speicher
+verliert seine Ladung langsam über Jahre – eine SSD, die jahrelang ungenutzt im Schrank liegt, kann Daten verlieren.
+Festplatten halten ihre Magnetisierung viele Jahre, sind aber mechanisch empfindlich. Optische Discs können bei guter
+Lagerung Jahrzehnte überdauern. Rechenzentren archivieren deshalb gern auf **Magnetbändern**: billig, dicht und langlebig.
+</Vertiefung>

@@ -1,0 +1,329 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  color: var(--accent-2);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin: 1.8em 0 0.6em;
+  font-weight: 700;
+}
+h1 {
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.7rem);
+  letter-spacing: -0.025em;
+  margin-top: 0;
+}
+h2 {
+  font-size: clamp(1.35rem, 1.2rem + 0.7vw, 1.7rem);
+}
+h3 {
+  font-size: 1.18rem;
+}
+p {
+  margin: 0 0 1em;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+:not(pre) > code {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 0.08em 0.38em;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 14px 16px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+kbd {
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 0.05em 0.4em;
+  background: var(--surface);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 2.5em 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.95em;
+}
+.prose table {
+  display: block;
+  overflow-x: auto;
+}
+th,
+td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* ---------------------------------------------------------------- Bausteine */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.05s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.btn.primary:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: var(--on-accent);
+}
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn.ghost:hover {
+  background: var(--surface-2);
+}
+.btn.small {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-s);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.muted {
+  color: var(--text-3);
+}
+
+.input {
+  font: inherit;
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+select.input {
+  cursor: pointer;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Farbklassen für Bauteile */
+.c-mem { --c: var(--mem); --c-soft: var(--mem-soft); }
+.c-abus { --c: var(--abus); --c-soft: var(--abus-soft); }
+.c-dbus { --c: var(--dbus); --c-soft: var(--dbus-soft); }
+.c-alu { --c: var(--alu); --c-soft: var(--alu-soft); }
+.c-cu { --c: var(--cu); --c-soft: var(--cu-soft); }
+.c-io { --c: var(--io); --c-soft: var(--io-soft); }
+.c-sbus { --c: var(--sbus); --c-soft: var(--sbus-soft); }
+.c-accent { --c: var(--accent); --c-soft: var(--accent-soft); }
+
+/* ---------------------------------------------------------------- Fließtext */
+
+/* Fließtext bleibt gut lesbar schmal, interaktive Bausteine dürfen die ganze Spalte nutzen */
+.prose > :where(p, ul, ol, h2, h3, h4, blockquote, pre, aside, details, hr) {
+  max-width: var(--content-w);
+}
+.prose > table {
+  max-width: 920px;
+}
+.prose > astro-island {
+  display: block;
+  max-width: 1000px;
+}
+.prose > :first-child {
+  margin-top: 0;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.3em;
+  margin: 0 0 1em;
+}
+.prose li {
+  margin: 0.25em 0;
+}
+.prose li::marker {
+  color: var(--text-3);
+}
+.prose blockquote {
+  margin: 1.2em 0;
+  padding: 2px 0 2px 16px;
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-2);
+}
+.prose strong {
+  font-weight: 650;
+}
+
+/* Interaktive Elemente dürfen breiter werden als der Fließtext */
+.wide {
+  width: min(var(--wide-w), calc(100vw - 32px));
+  max-width: none;
+  margin: 1.8em 0;
+}
+@media (min-width: 1100px) {
+  .prose .wide {
+    width: min(var(--wide-w), calc(100vw - 340px));
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

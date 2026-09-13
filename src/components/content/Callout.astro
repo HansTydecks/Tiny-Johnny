@@ -1,0 +1,83 @@
+---
+interface Props {
+  typ?: 'merke' | 'info' | 'achtung' | 'folie' | 'frage';
+  titel?: string;
+}
+const { typ = 'info', titel } = Astro.props;
+const defaults = {
+  merke: 'Merke',
+  info: 'Gut zu wissen',
+  achtung: 'Achtung',
+  folie: 'Genauer hingeschaut',
+  frage: 'Denk mal nach',
+};
+const icons = {
+  merke: '✓',
+  info: 'i',
+  achtung: '!',
+  folie: '⌕',
+  frage: '?',
+};
+---
+
+<aside class={`callout t-${typ}`}>
+  <span class="icon" aria-hidden="true">{icons[typ]}</span>
+  <div class="body">
+    <b class="title">{titel ?? defaults[typ]}</b>
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    --cc: var(--accent);
+    --cs: var(--accent-soft);
+    display: flex;
+    gap: 14px;
+    margin: 1.6em 0;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--cs);
+    border: 1px solid color-mix(in srgb, var(--cc) 25%, transparent);
+  }
+  .t-merke {
+    --cc: var(--ok);
+    --cs: var(--ok-soft);
+  }
+  .t-achtung {
+    --cc: var(--warn);
+    --cs: var(--warn-soft);
+  }
+  .t-folie {
+    --cc: var(--cu);
+    --cs: var(--cu-soft);
+  }
+  .t-frage {
+    --cc: var(--alu);
+    --cs: var(--alu-soft);
+  }
+  .icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--cc);
+    color: var(--surface);
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-top: 2px;
+  }
+  .body {
+    min-width: 0;
+  }
+  .title {
+    display: block;
+    margin-bottom: 4px;
+  }
+  .body :global(p:last-child),
+  .body :global(ul:last-child) {
+    margin-bottom: 0;
+  }
+</style>

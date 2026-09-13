@@ -1,0 +1,19 @@
+titel: Liste summieren (selbstverändernd)
+beschreibung: Addiert 4 Zahlen ab Zelle 100. Das Programm verändert dazu seinen eigenen ADD-Befehl – Befehle sind auch nur Zahlen!
+reihenfolge: 5
+programm: |
+  000: TST 051    ; noch Zahlen übrig?
+  JMP 003         ; ja → weiter
+  HLT             ; nein → fertig, Summe steht in 050
+  TAKE 050        ; bisherige Summe
+  ADD 100         ; ← diese Adresse wird bei jedem Durchlauf erhöht
+  SAVE 050
+  INC 004         ; der ADD-Befehl in Zelle 004 zeigt jetzt auf die nächste Zahl
+  DEC 051         ; eine Zahl weniger übrig
+  JMP 000
+  050: 0          ; Summe
+  4               ; Anzahl der Zahlen
+  100: 12
+  30
+  7
+  51

@@ -1,0 +1,239 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { u } from '../../lib/url';
+import { levelId } from '../../lib/tutorial';
+
+const levels = (await getCollection('tutorial')).sort((a, b) => a.data.nummer - b.data.nummer);
+
+const teile = [
+  { titel: 'Speicher & Busse', text: 'Wo liegen die Zahlen und wie kommen sie zur CPU?', von: 1, bis: 3, farbe: 'mem' },
+  { titel: 'Die CPU rechnet', text: 'Register und Rechenwerk – noch bist du das Steuerwerk.', von: 4, bis: 5, farbe: 'alu' },
+  { titel: 'Das Programm im Speicher', text: 'Befehle, Mikroprogramm und der Von-Neumann-Zyklus.', von: 6, bis: 8, farbe: 'cu' },
+  { titel: 'Programmieren', text: 'Eigene Programme mit Sprüngen und Entscheidungen.', von: 9, bis: 11, farbe: 'dbus' },
+  { titel: 'Von Neumann verstehen', text: 'Befehle vs. Daten und das Steuerwerk im Detail.', von: 12, bis: 13, farbe: 'abus' },
+  { titel: 'Vertiefung', text: 'Eigene Befehle erfinden und der Bonsai-Computer.', von: 14, bis: 99, farbe: 'io' },
+].map((t) => ({ ...t, levels: levels.filter((l) => l.data.nummer >= t.von && l.data.nummer <= t.bis) }));
+
+const bauteile: Record<string, string> = {
+  ram: 'Speicher',
+  ab: 'Adressbus',
+  db: 'Datenbus',
+  acc: 'Akkumulator',
+  ins: 'Befehlsregister',
+  pc: 'Programmzähler',
+  mc: 'Mikroprogramm',
+};
+const neu = (i: number) => {
+  const prev = new Set(i > 0 ? levels[i - 1].data.sichtbar : []);
+  return levels[i].data.sichtbar.filter((s) => bauteile[s] && !prev.has(s)).map((s) => bauteile[s]);
+};
+---
+
+<BaseLayout title="Johnny-Tutorial" description="14 Missionen führen Schritt für Schritt durch den Johnny-Simulator.">
+  <div class="page">
+    <header class="hero">
+      <span class="eyebrow">Tutorial</span>
+      <h1>Johnny in 14 Missionen</h1>
+      <p class="lead">
+        Wir bauen Johnny Bauteil für Bauteil zusammen. Jede Mission beginnt mit einer <b>Leitfrage</b> und
+        endet damit, dass du sie beantworten kannst. Am Ende steht die große Frage:
+      </p>
+      <p class="big-q">„Woher weiß der Computer eigentlich, was er tun soll?“</p>
+      <div class="hero-actions">
+        <a class="btn primary" href={u(`tutorial/${levelId(1)}`)}>Mit Mission 1 starten →</a>
+        <a class="btn" href={u('von-neumann')}>Erst die Von-Neumann-Grundlagen</a>
+      </div>
+    </header>
+
+    {
+      teile.map((t) => {
+        const inTeil = t.levels;
+        return (
+          <section class={`teil c-${t.farbe}`}>
+            <div class="teil-head">
+              <h2>{t.titel}</h2>
+              <p>{t.text}</p>
+            </div>
+            <ol class="levels">
+              {inTeil.map((l) => {
+                const idx = levels.indexOf(l);
+                const neue = neu(idx);
+                return (
+                  <li>
+                    <a class="level card" href={u(`tutorial/${levelId(l.data.nummer)}`)} data-progress={`level:${levelId(l.data.nummer)}`}>
+                      <span class="num">{l.data.nummer}</span>
+                      <span class="done-mark" aria-hidden="true">
+                        ✓
+                      </span>
+                      <span class="body">
+                        <b>{l.data.titel}</b>
+                        <span class="kurz">{l.data.kurz}</span>
+                        <span class="lf">{l.data.leitfrage}</span>
+                        {neue.length > 0 && (
+                          <span class="neu">
+                            {neue.map((n) => (
+                              <span class="chip">+ {n}</span>
+                            ))}
+                          </span>
+                        )}
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        );
+      })
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  .hero {
+    max-width: 780px;
+    margin-bottom: 40px;
+  }
+  .hero h1 {
+    margin: 6px 0 12px;
+  }
+  .lead {
+    color: var(--text-2);
+    font-size: 1.08rem;
+  }
+  .big-q {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 18px 0 24px;
+    padding-left: 16px;
+    border-left: 4px solid var(--accent);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .teil {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 24px;
+    padding: 28px 0;
+    border-top: 1px solid var(--border);
+  }
+  .teil-head h2 {
+    margin: 0 0 6px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .teil-head h2::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--c);
+  }
+  .teil-head p {
+    color: var(--text-3);
+    font-size: 0.93rem;
+  }
+  .levels {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .level {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    height: 100%;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .level:hover {
+    border-color: var(--c);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    color: var(--text);
+  }
+  .num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--c-soft);
+    color: var(--c);
+    font-weight: 800;
+    font-size: 1.05rem;
+  }
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .body b {
+    font-size: 1.02rem;
+  }
+  .kurz {
+    color: var(--text-2);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+  .lf {
+    font-size: 0.85rem;
+    color: var(--text-3);
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .neu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .neu .chip {
+    font-size: 0.72rem;
+  }
+  .done-mark {
+    display: none;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--ok);
+    color: var(--surface);
+    font-weight: 800;
+    font-size: 0.8rem;
+    place-items: center;
+  }
+  :global(.is-done) .done-mark {
+    display: grid;
+  }
+  :global(.level.is-done) {
+    border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+  }
+  @media (max-width: 760px) {
+    .teil {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+</style>

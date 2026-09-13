@@ -1,0 +1,49 @@
+titel: Programm lesen
+kontext: klassiker
+sterne: 1
+reihenfolge: 2
+typ: trace
+kurz: Vorhersagen, was ein Programm tut – ohne es auszuführen.
+leitfrage: Kann ich ein Programm verstehen, ohne es laufen zu lassen?
+text: |
+  Im Speicher steht ein fertiges Programm (Zellen 000–006) mit zwei Zahlen in 100 und 101.
+
+  Spiele das Programm **im Kopf** oder auf Papier durch. Notiere nach jedem Befehl, was im Akku steht.
+  Beantworte dann die Fragen.
+zellen:
+  "100": x
+  "101": y
+start: |
+  000: TAKE 100
+  SUB 101
+  SAVE 100
+  TAKE 101
+  ADD 100
+  SAVE 101
+  HLT
+  100: 10
+  4
+fragen:
+  - text: Was steht am Ende in Zelle **100**?
+    zelle: 100
+    antwort: 6
+  - text: Was steht am Ende in Zelle **101**?
+    zelle: 101
+    antwort: 10
+  - text: Was steht am Ende im **Akkumulator**?
+    akku: true
+    antwort: 10
+tipps:
+  - Lege eine Tabelle an mit den Spalten Befehl · Akku · Zelle 100 · Zelle 101.
+  - "Nach den ersten drei Befehlen: Akku = 6, Zelle 100 = 6."
+loesung: |
+  TAKE 100   ; Akku = 10
+  SUB 101    ; Akku = 6
+  SAVE 100   ; Zelle 100 = 6
+  TAKE 101   ; Akku = 4
+  ADD 100    ; Akku = 10
+  SAVE 101   ; Zelle 101 = 10
+  HLT
+erklaerung: |
+  Das Programm speichert in 101 wieder den alten Wert von x (10) und in 100 die Differenz x − y.
+  Solche **Trace-Tabellen** sind das wichtigste Werkzeug, um Programme zu verstehen.

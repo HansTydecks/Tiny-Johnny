@@ -1,0 +1,58 @@
+titel: Drei Werte rotieren
+kontext: klassiker
+sterne: 2
+reihenfolge: 3
+kurz: Jeder Wert rückt eine Zelle weiter, der letzte kommt nach vorn.
+leitfrage: In welcher Reihenfolge muss man kopieren, damit nichts verloren geht?
+text: |
+  In den Zellen **100**, **101** und **102** stehen drei Werte **a**, **b**, **c**.
+  Verschiebe alle um eine Zelle „nach hinten“ – der letzte Wert kommt nach vorn:
+
+  | vorher | 100 = a | 101 = b | 102 = c |
+  |---|---|---|---|
+  | **nachher** | 100 = **c** | 101 = **a** | 102 = **b** |
+
+  Zelle **103** ist eine Hilfszelle.
+zellen:
+  "100": a
+  "101": b
+  "102": c
+  "103": Hilfszelle
+start: |
+  100: 1
+  2
+  3
+tests:
+  - ein: { "100": 1, "101": 2, "102": 3 }
+    aus: { "100": 3, "101": 1, "102": 2 }
+  - ein: { "100": 5, "101": 0, "102": 9 }
+    aus: { "100": 9, "101": 5, "102": 0 }
+  - ein: { "100": 7, "101": 7, "102": 8 }
+    aus: { "100": 8, "101": 7, "102": 7 }
+tipps:
+  - Welcher Wert würde zuerst überschrieben, wenn du einfach von vorn anfängst? Sichere genau diesen Wert.
+  - "Beginne hinten: c in die Hilfszelle. Dann b nach 102, a nach 101, zuletzt die Hilfszelle nach 100."
+  - |
+    ```
+    000: TAKE 102
+    001: SAVE 103
+    002: TAKE ___
+    003: SAVE 102
+    004: TAKE ___
+    005: SAVE ___
+    006: TAKE 103
+    007: SAVE ___
+    008: HLT
+    ```
+loesung: |
+  TAKE 102
+  SAVE 103
+  TAKE 101
+  SAVE 102
+  TAKE 100
+  SAVE 101
+  TAKE 103
+  SAVE 100
+  HLT
+erklaerung: |
+  Mit **einer** Hilfszelle lassen sich beliebig viele Werte im Kreis verschieben – man muss nur beim richtigen Ende anfangen.

@@ -1,0 +1,205 @@
+---
+import { u, isActive } from '../../lib/url';
+import Logo from './Logo.astro';
+
+const links = [
+  { href: u('von-neumann'), label: 'Von-Neumann', color: 'var(--mem)' },
+  { href: u('tutorial'), label: 'Tutorial', color: 'var(--cu)' },
+  { href: u('aufgaben'), label: 'Aufgaben', color: 'var(--alu)' },
+  { href: u('sandbox'), label: 'Sandbox', color: 'var(--dbus)' },
+];
+const path = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href={u('')} aria-label="Tiny Johnny – Startseite">
+      <Logo size={30} />
+      <span>Tiny Johnny</span>
+    </a>
+    <nav class="nav" id="site-nav" aria-label="Hauptnavigation">
+      {
+        links.map((l) => (
+          <a href={l.href} class:list={{ active: isActive(path, l.href) }} style={`--dot:${l.color}`}>
+            <span class="dot" aria-hidden="true" />
+            {l.label}
+          </a>
+        ))
+      }
+      <a href={u('original-johnny')} class:list={['nav-sub', { active: isActive(path, u('original-johnny')) }]}>Original-Johnny</a>
+      <a href={u('lehrkraefte')} class:list={['nav-sub', { active: isActive(path, u('lehrkraefte')) }]}>Für Lehrkräfte</a>
+    </nav>
+    <div class="actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Farbschema wechseln" title="Farbschema wechseln">
+        <svg class="i-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>
+      </button>
+      <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Menü öffnen" aria-expanded="false" aria-controls="site-nav">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  const isDark = () =>
+    root.dataset.theme === 'dark' || (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+  btn?.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('tinyjohnny:theme', next);
+    } catch {}
+  });
+  const menu = document.getElementById('menu-toggle');
+  const nav = document.getElementById('site-nav');
+  menu?.addEventListener('click', () => {
+    const open = nav?.classList.toggle('open');
+    menu.setAttribute('aria-expanded', String(!!open));
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(12px);
+    -webkit-backdrop-filter: saturate(1.4) blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar {
+    height: var(--header-h);
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    font-size: 1.08rem;
+    color: var(--text);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+  .nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 9px;
+    color: var(--text-2);
+    font-weight: 550;
+    font-size: 0.95rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .nav a:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .nav a.active {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dot);
+  }
+  .nav-sub:first-of-type {
+    margin-left: auto;
+  }
+  .nav .nav-sub {
+    font-size: 0.88rem;
+    color: var(--text-3);
+  }
+  .actions {
+    display: flex;
+    gap: 4px;
+  }
+  .icon-btn {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .icon-btn:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .i-moon {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .i-sun {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .i-moon {
+    display: block;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .i-sun {
+      display: none;
+    }
+    :global(:root:not([data-theme='light'])) .i-moon {
+      display: block;
+    }
+  }
+  .menu-btn {
+    display: none;
+  }
+  @media (max-width: 980px) {
+    .menu-btn {
+      display: grid;
+    }
+    .bar {
+      justify-content: space-between;
+    }
+    .nav {
+      display: none;
+      position: absolute;
+      top: var(--header-h);
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 10px 16px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .nav.open {
+      display: flex;
+    }
+    .nav a {
+      padding: 12px;
+    }
+    .nav-sub:first-of-type {
+      margin-left: 0;
+      border-top: 1px solid var(--border);
+      margin-top: 6px;
+      padding-top: 14px;
+    }
+  }
+</style>

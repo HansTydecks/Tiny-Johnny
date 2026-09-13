@@ -1,0 +1,239 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { KONTEXTE } from '../../lib/content';
+import { u } from '../../lib/url';
+
+const tasks = (await getCollection('aufgaben')).sort((a, b) => a.data.sterne - b.data.sterne || a.data.reihenfolge - b.data.reihenfolge);
+const typLabel = { programm: 'Programmieren', trace: 'Programm lesen', fehlersuche: 'Fehlersuche' } as const;
+const kontexte = Object.entries(KONTEXTE) as [keyof typeof KONTEXTE, (typeof KONTEXTE)[keyof typeof KONTEXTE]][];
+---
+
+<BaseLayout title="Aufgaben" description="Johnny-Aufgaben mit Tipps, Musterlösung und automatischer Prüfung.">
+  <div class="page">
+    <header class="hero">
+      <span class="eyebrow">Aufgaben</span>
+      <h1>Jetzt bist du dran</h1>
+      <p class="lead">
+        Wähle eine Aufgabe aus einem Bereich, der dich interessiert. Jede Aufgabe wird <b>automatisch geprüft</b>.
+        Wenn du nicht weiterkommst, hol dir <b>Tipps</b> – ganz zum Schluss gibt es eine Musterlösung.
+      </p>
+      <p class="muted small">Tipp: Die Aufgaben mit ★ passen direkt nach Mission 9, ★★ und ★★★ nach Mission 11 des Tutorials.</p>
+    </header>
+
+    <div class="filters" role="group" aria-label="Aufgaben filtern">
+      <div class="filter-row">
+        <button class="pill active" data-filter-kontext="alle" type="button">Alle Bereiche</button>
+        {
+          kontexte.map(([key, k]) => (
+            <button class={`pill c-${k.farbe}`} data-filter-kontext={key} type="button">
+              <span class="pill-dot" />
+              {k.titel}
+            </button>
+          ))
+        }
+      </div>
+      <div class="filter-row">
+        <button class="pill active" data-filter-sterne="alle" type="button">Jede Schwierigkeit</button>
+        <button class="pill" data-filter-sterne="1" type="button">★ leicht</button>
+        <button class="pill" data-filter-sterne="2" type="button">★★ mittel</button>
+        <button class="pill" data-filter-sterne="3" type="button">★★★ knifflig</button>
+      </div>
+    </div>
+
+    <ul class="grid" id="task-grid">
+      {
+        tasks.map((t) => {
+          const k = KONTEXTE[t.data.kontext];
+          return (
+            <li data-kontext={t.data.kontext} data-sterne={t.data.sterne}>
+              <a class={`task card c-${k.farbe}`} href={u(`aufgaben/${t.id}`)} data-progress={`aufgabe:${t.id}`}>
+                <span class="top">
+                  <span class="ctx">{k.titel}</span>
+                  <span class="stars" aria-label={`${t.data.sterne} von 3 Sternen`}>
+                    {'★'.repeat(t.data.sterne)}
+                    <span class="off">{'★'.repeat(3 - t.data.sterne)}</span>
+                  </span>
+                </span>
+                <b>{t.data.titel}</b>
+                <span class="kurz">{t.data.kurz}</span>
+                <span class="bottom">
+                  <span class="chip">{typLabel[t.data.typ]}</span>
+                  {t.data.modus === 'bonsai' && <span class="chip">Bonsai</span>}
+                  <span class="status done">✓ gelöst</span>
+                  <span class="status started">begonnen</span>
+                </span>
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+    <p class="empty muted" id="task-empty" hidden>Keine Aufgabe passt zu diesem Filter.</p>
+  </div>
+</BaseLayout>
+
+<script>
+  const state = { kontext: 'alle', sterne: 'alle' };
+  const apply = () => {
+    let visible = 0;
+    document.querySelectorAll<HTMLElement>('#task-grid > li').forEach((li) => {
+      const show =
+        (state.kontext === 'alle' || li.dataset.kontext === state.kontext) &&
+        (state.sterne === 'alle' || li.dataset.sterne === state.sterne);
+      li.hidden = !show;
+      if (show) visible++;
+    });
+    const empty = document.getElementById('task-empty');
+    if (empty) empty.hidden = visible > 0;
+  };
+  for (const key of ['kontext', 'sterne'] as const) {
+    const buttons = document.querySelectorAll<HTMLButtonElement>(`[data-filter-${key}]`);
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        state[key] = b.getAttribute(`data-filter-${key}`) ?? 'alle';
+        buttons.forEach((x) => x.classList.toggle('active', x === b));
+        apply();
+      }),
+    );
+  }
+</script>
+
+<style>
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  .hero {
+    max-width: 760px;
+  }
+  .hero h1 {
+    margin: 6px 0 12px;
+  }
+  .lead {
+    color: var(--text-2);
+    font-size: 1.08rem;
+  }
+  .small {
+    font-size: 0.9rem;
+  }
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 28px 0 20px;
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .pill:hover {
+    background: var(--surface-2);
+  }
+  .pill.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+  .pill-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--c);
+  }
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .grid li[hidden] {
+    display: none;
+  }
+  .task {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    height: 100%;
+    color: var(--text);
+    text-decoration: none;
+    border-top: 3px solid var(--c);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .task:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    color: var(--text);
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .ctx {
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--c);
+  }
+  .stars {
+    color: var(--warn);
+    letter-spacing: 1px;
+  }
+  .stars .off {
+    color: var(--surface-3);
+  }
+  .task b {
+    font-size: 1.08rem;
+  }
+  .kurz {
+    color: var(--text-2);
+    font-size: 0.92rem;
+    flex: 1;
+  }
+  .bottom {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+  .status {
+    display: none;
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .status.done {
+    color: var(--ok);
+  }
+  .status.started {
+    color: var(--warn);
+  }
+  :global(.is-done) .status.done,
+  :global(.is-started) .status.started {
+    display: inline;
+  }
+  .empty {
+    margin-top: 20px;
+  }
+</style>

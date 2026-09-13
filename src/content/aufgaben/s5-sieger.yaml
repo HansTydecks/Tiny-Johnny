@@ -1,0 +1,80 @@
+titel: Wer hat gewonnen?
+kontext: spiele
+sterne: 3
+reihenfolge: 5
+kurz: Zwei Spielstände vergleichen – mit Unentschieden.
+leitfrage: Wie unterscheidet ein Programm drei Fälle mit nur einem Testbefehl?
+text: |
+  Zwei Spieler: Die Punkte von **Spieler 1** stehen in Zelle **100**, die von **Spieler 2** in Zelle **101**.
+
+  Schreibe in Zelle **102**:
+  - **1**, wenn Spieler 1 mehr Punkte hat,
+  - **2**, wenn Spieler 2 mehr Punkte hat,
+  - **0** bei Gleichstand.
+
+  Die Zellen **103** und **104** sind Hilfszellen.
+zellen:
+  "100": Spieler 1
+  "101": Spieler 2
+  "102": Sieger
+  "103": Hilfszelle
+  "104": Hilfszelle
+start: |
+  100: 15
+  9
+tests:
+  - ein: { "100": 15, "101": 9 }
+    aus: { "102": 1 }
+  - ein: { "100": 9, "101": 15 }
+    aus: { "102": 2 }
+  - name: Unentschieden
+    ein: { "100": 7, "101": 7 }
+    aus: { "102": 0 }
+  - ein: { "100": 0, "101": 1, "102": 1 }
+    aus: { "102": 2 }
+tipps:
+  - Berechne beide Differenzen P1 − P2 und P2 − P1 in die Hilfszellen. Welche davon ist in welchem Fall nicht 0?
+  - |
+    Ablauf: Sieger := 0 · Differenzen berechnen · Ist P1 − P2 ≠ 0 → Sieger 1 · sonst: Ist P2 − P1 ≠ 0 → Sieger 2 · sonst: fertig.
+    Den Wert 2 bekommst du mit zweimal INC.
+  - |
+    ```
+    000: NULL 102
+    001: TAKE 100
+    002: SUB  101
+    003: SAVE 103     ; P1 − P2
+    004: TAKE 101
+    005: SUB  100
+    006: SAVE 104     ; P2 − P1
+    007: TST  103
+    008: JMP  ___     ; → Sieger 1
+    009: TST  104
+    010: JMP  ___     ; → Sieger 2
+    011: HLT          ; Unentschieden
+    012: INC  102
+    013: HLT
+    014: INC  102
+    015: INC  102
+    016: HLT
+    ```
+loesung: |
+  NULL 102
+  TAKE 100
+  SUB 101
+  SAVE 103
+  TAKE 101
+  SUB 100
+  SAVE 104
+  TST 103
+  JMP 012
+  TST 104
+  JMP 014
+  HLT
+  INC 102
+  HLT
+  INC 102
+  INC 102
+  HLT
+erklaerung: |
+  Mit zwei hintereinander geschalteten Tests entstehen drei Wege durch das Programm – eine
+  **mehrfache Verzweigung** (in Hochsprachen: `if … else if … else`).

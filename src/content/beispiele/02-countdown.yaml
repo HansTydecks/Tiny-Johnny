@@ -1,0 +1,10 @@
+titel: Countdown
+beschreibung: Zählt Zelle 100 herunter, bis sie 0 ist – eine Schleife mit TST und JMP.
+reihenfolge: 2
+programm: |
+  000: TST 100    ; ist der Zähler 0?
+  JMP 003         ; nein → weiterzählen
+  HLT             ; ja → fertig
+  DEC 100         ; Zähler − 1
+  JMP 000         ; und wieder prüfen
+  100: 5          ; Startwert

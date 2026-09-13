@@ -1,0 +1,124 @@
+---
+titel: Überblick – EVAS und Von Neumann
+kurz: Aus welchen Teilen besteht ein Computer und wie arbeiten sie zusammen?
+leitfrage: Aus welchen Teilen besteht ein Computer – und wie arbeiten sie zusammen?
+reihenfolge: 1
+farbe: accent
+dauer: ca. 20 Minuten
+---
+import ArchitectureDiagram from '../../components/vonneumann/ArchitectureDiagram.svelte';
+import DragSort from '../../components/learning/DragSort.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import Vertiefung from '../../components/content/Vertiefung.astro';
+import { u } from '../../lib/url';
+
+Ob Smartphone, Spielkonsole oder Laptop: Von außen sehen Computer völlig unterschiedlich aus. Im Inneren folgen sie
+aber fast alle demselben Grundbauplan. Bevor wir uns diesen Bauplan genauer ansehen, beginnen wir mit einer ganz
+einfachen Beobachtung.
+
+## Das EVAS-Prinzip
+
+Jede Datenverarbeitung – auch schon ein Taschenrechner – läuft nach demselben Muster ab:
+
+- **E**ingabe: Daten gelangen in das System (du tippst `7 + 3`).
+- **V**erarbeitung: Die Daten werden verarbeitet (es wird gerechnet).
+- **A**usgabe: Das Ergebnis wird ausgegeben (die Anzeige zeigt `10`).
+- **S**peicherung: Daten und Zwischenergebnisse werden gespeichert (z. B. im Speicher des Rechners).
+
+Das **EVAS-Prinzip** beschreibt also, *was* in einem datenverarbeitenden System passiert – nicht aber, *wie* es gebaut ist.
+
+<DragSort
+  client:visible
+  titel="Ordne die Bauteile dem EVAS-Prinzip zu. (Ziehen oder antippen)"
+  kategorien={['Eingabe', 'Verarbeitung', 'Ausgabe', 'Speicherung']}
+  farben={['io', 'cu', 'io', 'mem']}
+  karten={[
+    { text: 'Tastatur', cat: 0 },
+    { text: 'Maus', cat: 0 },
+    { text: 'Mikrofon', cat: 0 },
+    { text: 'Webcam', cat: 0 },
+    { text: 'Prozessor (CPU)', cat: 1 },
+    { text: 'Grafikprozessor (GPU)', cat: 1, info: 'verarbeitet Bilddaten' },
+    { text: 'Monitor', cat: 2 },
+    { text: 'Lautsprecher', cat: 2 },
+    { text: 'Drucker', cat: 2 },
+    { text: 'Arbeitsspeicher (RAM)', cat: 3 },
+    { text: 'SSD', cat: 3 },
+    { text: 'USB-Stick', cat: 3 },
+  ]}
+/>
+
+## Die Von-Neumann-Architektur
+
+1945 beschrieb der Mathematiker **John von Neumann** einen Bauplan, nach dem bis heute fast alle Computer arbeiten.
+Er besteht aus fünf Teilen:
+
+<ArchitectureDiagram
+  client:visible
+  links={{
+    eingabe: u('von-neumann/eingabe'),
+    ausgabe: u('von-neumann/ausgabe'),
+    speicher: u('von-neumann/speicher'),
+    steuerwerk: u('von-neumann/cpu'),
+    rechenwerk: u('von-neumann/cpu'),
+    cpu: u('von-neumann/cpu'),
+    bus: u('von-neumann/bus'),
+  }}
+/>
+
+- Die **Ein- und Ausgabewerke** ermöglichen die Interaktion mit dem Benutzer.
+- Das **Rechenwerk** (*Arithmetic Logic Unit*, ALU) führt Befehle aus – z. B. „Addiere den Inhalt von Speicherstelle X
+  zum Inhalt von Speicherstelle Y und speichere das Ergebnis in Speicherstelle Z“.
+- Das **Steuerwerk** (Leitwerk, *Control Unit*, CU) holt Programmbefehle bzw. Daten aus dem Speicher und stellt sie dem
+  Rechenwerk bereit. Es benutzt einen **Befehlszähler**, der die Nummer der Speicherstelle enthält, unter der der nächste Befehl zu finden ist.
+- Im **Speicherwerk** befinden sich **Programme und Daten**. Es ist durchnummeriert – man kann z. B. feststellen, dass an der
+  Speicherstelle 305 das Datenelement `11011011` steht.
+- Das **Bus-System** verbindet alle Teile. Über den Bus werden sämtliche Daten transportiert.
+
+Rechenwerk und Steuerwerk bilden zusammen die **CPU** (*Central Processing Unit*), den Prozessor.
+
+## EVAS und Von Neumann im Vergleich
+
+| | EVAS-Prinzip | Von-Neumann-Architektur |
+|---|---|---|
+| Aufbau | Eingabe-, Verarbeitungs-, Ausgabe- und Speichereinheit | Eingabewerk, Ausgabewerk, Speicherwerk, CPU |
+| Verarbeitung | „Verarbeitungseinheit“ | CPU mit **Rechenwerk (ALU)** und **Steuerwerk** |
+| Transport der Daten | nicht festgelegt | über einen gemeinsamen **BUS** |
+| Programm | nicht festgelegt | **Programm und Daten im selben Speicher** |
+
+Das EVAS-Prinzip ist also die grobe Idee, die Von-Neumann-Architektur der konkrete Bauplan.
+
+## Die Kernidee: das gespeicherte Programm
+
+Die ersten Großrechner wie der ENIAC (1945) wurden für jede neue Aufgabe **umverdrahtet** – mit Kabeln und Schaltern.
+Das dauerte Tage. Von Neumanns Idee war genial einfach:
+
+<Callout typ="merke" titel="Das Prinzip des gespeicherten Programms">
+Das **Programm** wird genauso wie die **Daten** als Zahlen im Speicher abgelegt. Um den Computer für eine neue Aufgabe
+einzusetzen, muss man nur ein anderes Programm in den Speicher laden – die Hardware bleibt gleich.
+</Callout>
+
+Damit ist die zentrale Frage dieses Lernpfads schon angedeutet: **Woher weiß der Computer, was er tun soll?** – Er holt
+sich seine Befehle, einen nach dem anderen, aus dem Speicher. Wie genau das funktioniert, sehen wir in den nächsten
+Kapiteln und später ganz konkret am Modellrechner **Johnny**.
+
+<Quiz
+  client:visible
+  frage="Was unterscheidet die Von-Neumann-Architektur vom einfachen EVAS-Prinzip?"
+  optionen={[
+    'Programme und Daten liegen gemeinsam im Speicher.',
+    'Alle Bauteile sind über einen gemeinsamen Bus verbunden.',
+    'Es gibt eine Eingabe und eine Ausgabe.',
+    'Die Verarbeitung ist in Rechenwerk und Steuerwerk aufgeteilt.',
+  ]}
+  richtig={[0, 1, 3]}
+  erklaerung="Eingabe und Ausgabe gibt es in beiden Modellen. Das Neue bei Von Neumann sind der gemeinsame Speicher für Programm und Daten, der Bus und die Aufteilung der CPU."
+/>
+
+<Vertiefung titel="Wer war John von Neumann?">
+John von Neumann (1903–1957) war ein ungarisch-amerikanischer Mathematiker. Er arbeitete an Quantenmechanik, Spieltheorie
+und am Manhattan-Projekt. 1945 fasste er im „First Draft of a Report on the EDVAC“ die Ideen einer Gruppe um J. Presper
+Eckert und John Mauchly zusammen. Weil nur sein Name auf dem Bericht stand, trägt die Architektur heute seinen Namen –
+obwohl viele Ideen gemeinsam entwickelt wurden.
+</Vertiefung>

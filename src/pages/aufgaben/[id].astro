@@ -1,0 +1,100 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TaskRunner from '../../components/learning/TaskRunner.svelte';
+import { KONTEXTE, md } from '../../lib/content';
+import { toTaskView } from '../../lib/tasks';
+import { u } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const all = await getCollection('aufgaben');
+  return all.map((entry) => {
+    const sameCtx = all
+      .filter((t) => t.data.kontext === entry.data.kontext)
+      .sort((a, b) => a.data.sterne - b.data.sterne || a.data.reihenfolge - b.data.reihenfolge);
+    const next = sameCtx[sameCtx.indexOf(entry) + 1];
+    return { params: { id: entry.id }, props: { entry, next } };
+  });
+}
+
+const { entry, next } = Astro.props;
+const task = toTaskView(entry, md);
+const k = KONTEXTE[task.kontext];
+---
+
+<BaseLayout title={task.titel} description={task.leitfrage}>
+  <div class="page">
+    <header class="head">
+      <div>
+        <nav class="crumbs" aria-label="Brotkrumen">
+          <a href={u('aufgaben')}>Aufgaben</a>
+          <span aria-hidden="true">/</span>
+          <span class={`ctx c-${k.farbe}`}>{k.titel}</span>
+          <span class="stars" aria-label={`${task.sterne} von 3 Sternen`}>{'★'.repeat(task.sterne)}</span>
+          {task.modus === 'bonsai' && <span class="chip">Bonsai-Modus</span>}
+        </nav>
+        <h1>{task.titel}</h1>
+      </div>
+      <div class="leitfrage">
+        <span class="lf-label">Leitfrage</span>
+        <span>{task.leitfrage}</span>
+      </div>
+    </header>
+    <TaskRunner client:load {task} nextHref={next ? u(`aufgaben/${next.id}`) : undefined} overviewHref={u('aufgaben')} />
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 20px 20px 0;
+  }
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 28px;
+    margin-bottom: 16px;
+  }
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-3);
+  }
+  .crumbs a {
+    color: var(--text-3);
+    text-decoration: none;
+  }
+  .ctx {
+    color: var(--c);
+    font-weight: 650;
+  }
+  .stars {
+    color: var(--warn);
+  }
+  h1 {
+    margin: 2px 0 0;
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  }
+  .leitfrage {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    max-width: 640px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+  .lf-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    color: var(--accent);
+  }
+</style>

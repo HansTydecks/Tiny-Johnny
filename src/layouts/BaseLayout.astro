@@ -1,0 +1,79 @@
+---
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+import Header from '../components/site/Header.astro';
+import Footer from '../components/site/Footer.astro';
+import { u } from '../lib/url';
+
+interface Props {
+  title: string;
+  description?: string;
+  bodyClass?: string;
+}
+const { title, description = 'Vom Von-Neumann-Rechner zum Johnny-Simulator – interaktiv, geführt und mit vielen Aufgaben.', bodyClass = '' } = Astro.props;
+const fullTitle = title === 'Tiny Johnny' ? title : `${title} · Tiny Johnny`;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={u('favicon.svg')} />
+    <meta name="theme-color" content="#4f46e5" />
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('tinyjohnny:theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class={bodyClass}>
+    <a class="skip" href="#inhalt">Zum Inhalt springen</a>
+    <Header />
+    <main id="inhalt">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import { loadProgress, onProgress, type Progress } from '../lib/progress';
+      function apply(p: Progress) {
+        document.querySelectorAll<HTMLElement>('[data-progress]').forEach((el) => {
+          const [kind, id] = (el.dataset.progress ?? '').split(':');
+          let done = false;
+          if (kind === 'kapitel') done = !!p.kapitel[id];
+          else if (kind === 'level') done = !!p.level[id];
+          else if (kind === 'aufgabe') done = !!p.aufgaben[id]?.geloest;
+          el.classList.toggle('is-done', done);
+          if (kind === 'aufgabe') el.classList.toggle('is-started', !done && !!p.aufgaben[id]);
+        });
+      }
+      apply(loadProgress());
+      onProgress(apply);
+    </script>
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    z-index: 100;
+    background: var(--accent);
+    color: var(--on-accent);
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+  .skip:focus {
+    left: 16px;
+  }
+  main {
+    min-height: calc(100vh - var(--header-h) - 120px);
+  }
+</style>

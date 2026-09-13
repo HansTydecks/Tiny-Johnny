@@ -1,0 +1,71 @@
+titel: Division mit Rest
+kontext: mathe
+sterne: 3
+reihenfolge: 7
+kurz: "a : b = Quotient Rest – durch wiederholtes Subtrahieren."
+leitfrage: Wie kann ein Programm „kleiner als“ prüfen, wenn es nur „ist 0?“ kennt?
+text: |
+  In **100** steht **a**, in **101** steht **b** (b ist nie 0).
+  Berechne die ganzzahlige Division: **Quotient** in Zelle **102**, **Rest** in Zelle **103**.
+
+  Beispiel: 17 : 5 = 3 Rest 2.
+
+  Zelle 100 darf verändert werden, Zelle **104** ist eine Hilfszelle.
+zellen:
+  "100": a
+  "101": b
+  "102": Quotient
+  "103": Rest
+  "104": Hilfszelle
+start: |
+  100: 17
+  5
+tests:
+  - ein: { "100": 17, "101": 5 }
+    aus: { "102": 3, "103": 2 }
+  - ein: { "100": 15, "101": 5 }
+    aus: { "102": 3, "103": 0 }
+  - ein: { "100": 4, "101": 7 }
+    aus: { "102": 0, "103": 4 }
+  - ein: { "100": 0, "101": 3 }
+    aus: { "102": 0, "103": 0 }
+tipps:
+  - Ziehe b so oft von a ab, wie es geht, und zähle mit. Was übrig bleibt, ist der Rest.
+  - |
+    „Geht es noch?“ heißt: **a ≥ b**. Bei Johnny gilt: **b − a** ist genau dann 0, wenn a ≥ b ist.
+    Berechne also b − a in die Hilfszelle und teste sie mit TST.
+  - |
+    ```
+    000: NULL 102      ; Quotient := 0
+    001: TAKE 101      ; Hilfszelle := b − a
+    002: SUB  100
+    003: SAVE 104
+    004: TST  104      ; 0? → a ≥ b → abziehen
+    005: JMP  ___      ; sonst fertig
+    006: TAKE 100      ; a := a − b
+    007: SUB  ___
+    008: SAVE 100
+    009: INC  ___      ; Quotient + 1
+    010: JMP  ___
+    011: TAKE 100      ; Rest := a
+    012: SAVE ___
+    013: HLT
+    ```
+loesung: |
+  NULL 102
+  TAKE 101
+  SUB 100
+  SAVE 104
+  TST 104
+  JMP 011
+  TAKE 100
+  SUB 101
+  SAVE 100
+  INC 102
+  JMP 001
+  TAKE 100
+  SAVE 103
+  HLT
+erklaerung: |
+  Der Vergleich **a ≥ b** wird durch die Rechnung b − a und den Test auf 0 ersetzt.
+  Echte Prozessoren machen es ähnlich: Sie subtrahieren und schauen dann auf die Flags im **Statusregister**.

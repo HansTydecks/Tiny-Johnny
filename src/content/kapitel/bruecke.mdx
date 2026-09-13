@@ -1,0 +1,78 @@
+---
+titel: Brücke zu Johnny
+kurz: Vom realen Prozessor zum Modellrechner – was Johnny vereinfacht und was bleibt.
+leitfrage: Wie hilft uns ein vereinfachtes Modell, den Prozessor Schritt für Schritt zu verstehen?
+reihenfolge: 10
+farbe: cu
+dauer: ca. 15 Minuten
+---
+import CpuModel from '../../components/vonneumann/CpuModel.svelte';
+import Quiz from '../../components/learning/Quiz.svelte';
+import Callout from '../../components/content/Callout.astro';
+import { u } from '../../lib/url';
+
+## Warum ein Modellrechner?
+
+Ein echter Prozessor enthält Milliarden Transistoren, rechnet binär und erledigt einen Befehl in Bruchteilen einer
+Nanosekunde. Da kann man nicht „zuschauen“. Deshalb arbeiten wir mit **Johnny**, einem Simulator, der die
+Von-Neumann-Architektur so vereinfacht, dass **jeder einzelne Schritt sichtbar** wird.
+
+Johnny wurde von Peter Dauscher entwickelt und ist ausdrücklich für die Bildung gedacht. Dafür wurden bewusst
+Vereinfachungen vorgenommen: **vereinfachte Bus-Operationen**, ein **reduzierter Befehlssatz** – und Johnny rechnet
+**dezimal** statt binär.
+
+## Was Johnny weglässt und vereinfacht
+
+Schalte „Entsprechung bei Johnny zeigen“ ein und tippe die Bauteile an:
+
+<CpuModel client:visible johnny={true} />
+
+| Reale CPU (Modell) | Johnny | Kürzel |
+|---|---|---|
+| Befehlszähler | Programmzähler | `pc` |
+| Befehlsregister | Befehlsregister, aufgeteilt in Opcode und Adresse | `ins` |
+| Befehlsdecodierer | Mikroprogrammzähler mit Mikrocode | `mc` |
+| Datenregister | Akkumulator | `acc` |
+| ALU | Rechenwerk mit `plus`, `minus`, `acc++`, `acc--`, `acc:=0` | – |
+| Statusregister | nur die Anzeige „=0?“ | – |
+| Cache | **fehlt** | – |
+| Arbeitsspeicher | 1000 Speicherzellen (000–999) | `ram` |
+| Adressbus / Datenbus | Adressbus (3 Stellen), Datenbus (5 Stellen) | `ab`, `db` |
+| Steuerbus | steckt in den Mikrobefehlen (z. B. `ram→db` = lesen) | – |
+| Ein- und Ausgabewerk | **fehlen** – man schreibt direkt in den Speicher | – |
+
+## Dezimal statt binär
+
+Johnnys Speicherzellen enthalten keine Bitmuster, sondern **fünfstellige Dezimalzahlen** von 00.000 bis 19.999.
+Das macht Programme viel leichter lesbar. Die Zahl wird dabei in zwei Teile zerlegt:
+
+| `01` | `.` | `010` |
+|---|---|---|
+| **Opcode** – welcher Befehl? | | **Adresse** – mit welcher Zelle? |
+
+`01.010` bedeutet also: Befehl 01 (**TAKE**) mit Zelle 010. Genau so funktioniert es auch in echten Prozessoren – nur mit Bits.
+
+<Quiz
+  client:visible
+  frage="Welche Bauteile hat Johnny NICHT?"
+  optionen={['Cache', 'Programmzähler', 'Ein- und Ausgabewerk', 'Rechenwerk', 'Befehlsregister']}
+  richtig={[0, 2]}
+  erklaerung="Johnny konzentriert sich auf den Kern: Speicher, Busse, Rechenwerk und Steuerwerk. Cache und Ein-/Ausgabe fehlen."
+/>
+
+## Die Farben helfen dir
+
+Auf dieser Website hat jedes Bauteil eine feste Farbe – im Von-Neumann-Modell genauso wie im Johnny-Simulator:
+
+- <b style="color: var(--mem)">Blau</b> – Speicher
+- <b style="color: var(--abus)">Orange</b> – Adressbus
+- <b style="color: var(--dbus)">Grün</b> – Datenbus
+- <b style="color: var(--alu)">Lila</b> – Rechenwerk
+- <b style="color: var(--cu)">Türkis</b> – Steuerwerk
+
+<Callout typ="merke" titel="Jetzt geht es los!">
+Im **Tutorial** baust du Johnny Bauteil für Bauteil zusammen – vom Speicher bis zum Steuerwerk. Jede Mission beginnt mit
+einer Leitfrage. Am Ende kannst du die große Frage beantworten: **Woher weiß der Computer, was er tun soll?**
+
+<a class="btn primary" href={u('tutorial/01')}>Mission 1 starten →</a>
+</Callout>

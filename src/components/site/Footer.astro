@@ -1,0 +1,53 @@
+---
+import { u } from '../../lib/url';
+---
+
+<footer class="site-footer">
+  <div class="inner">
+    <p>
+      <strong>Tiny Johnny</strong> – ein Lernpfad vom Von-Neumann-Rechner zum Modellrechner Johnny.
+      Johnny stammt von Peter Dauscher und David Laubersheimer.
+    </p>
+    <nav aria-label="Weitere Seiten">
+      <a href={u('lehrkraefte')}>Für Lehrkräfte</a>
+      <a href={u('original-johnny')}>Zum Original-Johnny</a>
+      <a href={u('credits')}>Quellen &amp; Lizenz</a>
+      <a href="https://github.com/HansTydecks/Tiny-Johnny">GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 80px;
+    color: var(--text-3);
+    font-size: 0.9rem;
+  }
+  .inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 32px;
+    justify-content: space-between;
+    align-items: center;
+  }
+  p {
+    margin: 0;
+    max-width: 640px;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+  a {
+    color: var(--text-2);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--accent);
+  }
+</style>

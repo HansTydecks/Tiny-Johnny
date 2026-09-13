@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Callout from '../components/content/Callout.astro';
+import { u } from '../lib/url';
+
+const rows = [
+  ['Mikroschritt', 'One micro step', 'Knopf im Mikrocode-Bereich (Steuerwerk)'],
+  ['Makroschritt', 'One macro step', 'oben links bei den Speicher-Symbolen'],
+  ['Ausführen / Pause', 'Run Programm / Pause programm', 'daneben, mit Geschwindigkeitsregler'],
+  ['Reset', 'Reset', 'setzt alle Register auf 0, der Speicher bleibt'],
+  ['Mehr → Speicher löschen', 'New Ram', 'leert alle 1000 Zellen'],
+  ['Mehr → Speicher speichern / laden (.ram)', 'Save ram as Johnny file / Load ram file', 'gleiches Dateiformat!'],
+  ['Mehr → Mikrocode speichern / laden (.mc)', 'Symbole im Mikrocode-Bereich', 'gleiches Dateiformat!'],
+  ['Mehr → Mikroprogramm-Steuerung', 'Checkbox „show control unit“', 'Steuerwerk ein-/ausblenden'],
+  ['Eigenen Befehl aufnehmen (Platz 11, Name DBL)', 'Record macrocode: Adresse 110, Name DBL', 'Achtung: Im Original gibt man die Mikrocode-Adresse (Opcode × 10) an'],
+  ['Mehr → Bonsai-Modus', 'bonsai mode', 'Mikrocode wird ersetzt'],
+  ['Adressbus / Datenbus „anlegen“', 'set Address Bus / set Data Bus', 'Eingabefeld direkt am Bus'],
+  ['Zelle anklicken, Befehl wählen, Schreiben', 'Zeile anklicken, Befehl im Auswahlfeld, write', 'Eingabe wie 01.100 möglich'],
+];
+
+const micro = [
+  ['Speicher → Datenbus', 'ram→db', 'ram-->db'],
+  ['Datenbus → Speicher', 'db→ram', 'db-->ram'],
+  ['Datenbus → Akkumulator', 'db→acc', 'db-->acc'],
+  ['Akkumulator → Datenbus', 'acc→db', 'acc-->db'],
+  ['Akku + Datenbus / Akku − Datenbus', 'plus / minus', 'plus / minus'],
+  ['Akku := 0 / + 1 / − 1', 'acc:=0 / acc++ / acc--', 'acc=0 / acc++ / acc--'],
+  ['Datenbus → Befehlsregister', 'db→ins', 'db-->ins'],
+  ['Adressteil → Adressbus / Programmzähler', 'ins→ab / ins→pc', 'ins-->ab / ins-->pc'],
+  ['Opcode → Mikroprogrammzähler', 'ins→mc', 'ins-->mc'],
+  ['Programmzähler → Adressbus / + 1', 'pc→ab / pc++', 'pc-->ab / pc++'],
+  ['Wenn Akku = 0: Programmzähler + 1', '=0:pc++', '=0:pc++'],
+  ['Mikroprogrammzähler := 0 / Anhalten', 'mc:=0 / stopp', 'mc:=0 / stop'],
+];
+---
+
+<BaseLayout title="Ins Original-Johnny wechseln" description="So gelingt der Umstieg von Tiny Johnny auf den Original-Simulator Johnny 2.0.">
+  <div class="page prose">
+    <span class="eyebrow">Transfer</span>
+    <h1>Ins Original-Johnny wechseln</h1>
+    <p class="lead">
+      Tiny Johnny rechnet <b>exakt wie das Original</b>: gleicher Mikrocode, gleiche Befehle, gleiche Dateiformate.
+      Alles, was du hier gelernt hast, funktioniert auch im Simulator <b>Johnny 2.0</b> von David Laubersheimer und
+      Peter Dauscher, der z. B. auf inf-schule.de eingesetzt wird.
+    </p>
+
+    <div class="links">
+      <a class="btn primary" href="https://dev.inf-schule.de/content/12_rechner/4_johnny/johnny3/" rel="noopener">Johnny 2.0 öffnen ↗</a>
+      <a class="btn" href="https://inf-schule.de/rechner/johnny" rel="noopener">Johnny-Kapitel auf inf-schule ↗</a>
+      <a class="btn ghost" href="https://github.com/Laubersheini/johnny" rel="noopener">Quellcode auf GitHub ↗</a>
+    </div>
+
+    <h2>Ein Programm mitnehmen – in vier Schritten</h2>
+    <ol class="steps">
+      <li><b>In Tiny Johnny speichern:</b> In der <a href={u('sandbox')}>Sandbox</a> oder bei einer Aufgabe über <b>Mehr → Speicher speichern (.ram)</b>.</li>
+      <li><b>Original öffnen</b> und den Startbildschirm mit einem Klick schließen.</li>
+      <li>Oben links auf das Symbol <b>„Load ram file“</b> klicken und die .ram-Datei auswählen.</li>
+      <li>Mit <b>„Run Programm“</b> oder <b>„One macro step“</b> ausführen – das Ergebnis ist identisch.</li>
+    </ol>
+    <p>Umgekehrt geht es genauso: Eine im Original gespeicherte .ram- oder .mc-Datei kannst du in Tiny Johnny über <b>Mehr</b> laden.</p>
+
+    <h2>Bedienung im Vergleich</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tiny Johnny</th><th>Johnny 2.0 (Original)</th><th>Hinweis</th></tr></thead>
+        <tbody>
+          {rows.map(([a, b, c]) => <tr><td>{a}</td><td><code>{b}</code></td><td>{c}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Die Mikrobefehle</h2>
+    <p>Im Original stehen nur die Kürzel auf den Knöpfen. In Tiny Johnny hast du sie schon kennengelernt:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Bedeutung</th><th>Tiny Johnny</th><th>Original</th></tr></thead>
+        <tbody>
+          {micro.map(([a, b, c]) => <tr><td>{a}</td><td><code>{b}</code></td><td><code>{c}</code></td></tr>)}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Kleine Unterschiede</h2>
+    <ul>
+      <li>Das Original ist <b>englisch</b> beschriftet (Address, Data, Asm, Opnd = Adresse, Inhalt, Befehl, Operand).</li>
+      <li>Am Programmende zeigt das Original ein Hinweisfenster „Ende des Programms“. Tiny Johnny zeigt eine Meldung über dem Simulator.</li>
+      <li>Beim <b>Aufnehmen</b> eigener Befehle gibt man im Original die <b>Mikrocode-Adresse</b> an (z. B. 110 für Opcode 11), in Tiny Johnny den Opcode.</li>
+      <li>Tiny Johnny hat zusätzlich ein <b>Protokoll</b>, Hervorhebungen, Beispielprogramme und Teilen-Links.</li>
+    </ul>
+
+    <Callout typ="merke" titel="Warum überhaupt wechseln?">
+      Das Original ist das „echte Werkzeug“, mit dem an vielen Schulen gearbeitet wird – und es ist auch als App
+      installierbar und offline nutzbar. Wer Tiny Johnny beherrscht, findet sich dort sofort zurecht.
+    </Callout>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  h1 {
+    margin: 6px 0 12px;
+  }
+  .lead {
+    font-size: 1.08rem;
+    color: var(--text-2);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0 8px;
+  }
+  .steps li {
+    margin: 8px 0;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .table-wrap table {
+    min-width: 620px;
+  }
+  .table-wrap td:first-child {
+    font-weight: 600;
+  }
+</style>
