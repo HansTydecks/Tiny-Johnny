@@ -1,7 +1,9 @@
 /** Baut Links relativ zur Basis-URL (GitHub Pages liegt unter /Tiny-Johnny/). */
 export function u(path = ''): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  const p = path.replace(/^\//, '');
+  let p = path.replace(/^\//, '');
+  // Seiten mit Schrägstrich enden lassen – GitHub Pages leitet sonst jedes Mal um
+  if (p && !p.endsWith('/') && !/\.[a-z0-9]+$/i.test(p)) p += '/';
   return `${base}/${p}`;
 }
 
