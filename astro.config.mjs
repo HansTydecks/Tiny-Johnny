@@ -4,8 +4,7 @@ import svelte from '@astrojs/svelte';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
-  site: 'https://hanstydecks.github.io',
-  base: '/Tiny-Johnny',
+  site: 'https://tinyjohnny.tinfo.space',
   trailingSlash: 'ignore',
   integrations: [svelte(), mdx()],
 });

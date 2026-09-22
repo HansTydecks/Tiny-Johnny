@@ -2,7 +2,7 @@
 
 **Vom Von-Neumann-Rechner zum Modellrechner Johnny** – ein interaktiver Lernpfad für die Sekundarstufe II.
 
-🌐 **Website:** https://hanstydecks.github.io/Tiny-Johnny/
+🌐 **Website:** https://tinyjohnny.tinfo.space/
 
 Leitfrage: *Woher weiß der Computer eigentlich, was er tun soll?*
 
@@ -138,7 +138,7 @@ Voraussetzung: [Node.js](https://nodejs.org/) 22 oder neuer.
 
 ```bash
 npm install
-npm run dev      # Entwicklungsserver auf http://localhost:4321/Tiny-Johnny/
+npm run dev      # Entwicklungsserver auf http://localhost:4321/
 npm test         # Engine-Tests + Prüfung aller Missionen, Aufgaben und Beispiele
 npm run build    # statische Website nach dist/
 ```
