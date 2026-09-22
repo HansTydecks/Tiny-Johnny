@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { u } from '../lib/url';
 ---
 
 <BaseLayout title="Quellen & Lizenz" description="Quellen, Danksagungen und Lizenzen von Tiny Johnny.">
@@ -32,10 +33,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <h2>Datenschutz</h2>
     <p>
-      Diese Website speichert keine personenbezogenen Daten auf Servern und verwendet kein Tracking. Lernfortschritt,
-      Programme und die Farbschema-Einstellung werden ausschließlich lokal im Browser (<code>localStorage</code>) abgelegt
-      und können jederzeit über die Browsereinstellungen gelöscht werden. Die Seite wird über GitHub Pages ausgeliefert;
-      dabei gelten die Datenschutzbestimmungen von GitHub.
+      Diese Website speichert keine personenbezogenen Daten auf Servern und verwendet kein Tracking. Details zu
+      Lernfortschritt, <code>localStorage</code> und Hosting stehen in der <a href={u('datenschutz')}>Datenschutzerklärung</a>.
     </p>
 
     <h2>Quellcode</h2>

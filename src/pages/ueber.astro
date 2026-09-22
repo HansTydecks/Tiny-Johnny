@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { u } from '../lib/url';
+---
+
+<BaseLayout title="Über dieses Projekt" description="Wer Tiny Johnny gemacht hat und warum.">
+  <div class="page prose">
+    <span class="eyebrow">Über Tiny Johnny</span>
+    <h1>Über dieses Projekt</h1>
+
+    <p class="lead">
+      Tiny Johnny ist ein kostenloses, werbefreies Bildungsprojekt und Teil der privaten Lernangebote auf
+      <a href="https://tinfo.space">tinfo.space</a>. Es entstand aus der Leitfrage „Woher weiß der Computer
+      eigentlich, was er tun soll?“ und führt Schülerinnen und Schüler der Sekundarstufe II vom Von-Neumann-Modell
+      zum Modellrechner Johnny.
+    </p>
+
+    <h2>Wer steckt dahinter?</h2>
+    <p>
+      Hinter Tiny Johnny steht Hans Tydecks. Mit einem Hintergrund in Informatik sowie Englisch und Deutsch als
+      Fremdsprache pflegt er dieses Projekt in der Freizeit, allein und ohne kommerzielle Absicht.
+    </p>
+
+    <h2>Kontakt und Rückmeldung</h2>
+    <p>Über Fragen, Fehlermeldungen oder Ideen freue ich mich jederzeit:</p>
+    <ul class="prose-list">
+      <li>E-Mail: <a href="mailto:hanstydecks.tea@gmail.com">hanstydecks.tea@gmail.com</a></li>
+      <li>Kontaktformular: <a href="https://contact.tinfo.space/">contact.tinfo.space</a></li>
+      <li>
+        Fehler oder Verbesserungsvorschläge zum Code und zu den Inhalten gerne direkt als
+        <a href="https://github.com/HansTydecks/Tiny-Johnny/issues">Issue auf GitHub</a> melden.
+      </li>
+    </ul>
+
+    <p>
+      Quellen, Lizenzen und Danksagungen stehen auf der Seite <a href={u('credits')}>Quellen & Lizenz</a>, rechtliche
+      Angaben im <a href={u('impressum')}>Impressum</a>.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 36px 20px 0;
+  }
+  h1 {
+    margin: 6px 0 12px;
+  }
+  .lead {
+    font-size: 1.08rem;
+    color: var(--text-2);
+  }
+  .prose-list {
+    padding-left: 1.2em;
+  }
+  .prose-list li {
+    margin: 6px 0;
+  }
+</style>

@@ -1,19 +1,63 @@
 ---
 import { u } from '../../lib/url';
+import Logo from './Logo.astro';
+
+const year = new Date().getFullYear();
+
+const columns = [
+  {
+    titel: 'Lernen',
+    links: [
+      { href: u('von-neumann'), label: 'Von-Neumann-Rechner' },
+      { href: u('tutorial'), label: 'Tutorial' },
+      { href: u('aufgaben'), label: 'Aufgaben' },
+      { href: u('sandbox'), label: 'Sandbox' },
+    ],
+  },
+  {
+    titel: 'Projekt',
+    links: [
+      { href: u('lehrkraefte'), label: 'Für Lehrkräfte' },
+      { href: u('ueber'), label: 'Über dieses Projekt' },
+      { href: u('credits'), label: 'Quellen & Lizenz' },
+      { href: 'https://github.com/HansTydecks/Tiny-Johnny', label: 'GitHub' },
+    ],
+  },
+  {
+    titel: 'Rechtliches',
+    links: [
+      { href: u('impressum'), label: 'Impressum' },
+      { href: u('datenschutz'), label: 'Datenschutz' },
+    ],
+  },
+];
 ---
 
 <footer class="site-footer">
   <div class="inner">
-    <p>
-      <strong>Tiny Johnny</strong> – ein Lernpfad vom Von-Neumann-Rechner zum Modellrechner Johnny.
-      Johnny stammt von Peter Dauscher und David Laubersheimer.
-    </p>
-    <nav aria-label="Weitere Seiten">
-      <a href={u('lehrkraefte')}>Für Lehrkräfte</a>
-      <a href={u('original-johnny')}>Zum Original-Johnny</a>
-      <a href={u('credits')}>Quellen &amp; Lizenz</a>
-      <a href="https://github.com/HansTydecks/Tiny-Johnny">GitHub</a>
-    </nav>
+    <div class="brand">
+      <a class="logo-link" href={u('')} aria-label="Tiny Johnny – Startseite">
+        <Logo size={26} />
+        <span>Tiny Johnny</span>
+      </a>
+      <p>
+        Ein Lernpfad vom Von-Neumann-Rechner zum Modellrechner Johnny. Johnny stammt von Peter Dauscher und David
+        Laubersheimer.
+      </p>
+    </div>
+    {
+      columns.map((col) => (
+        <nav class="col" aria-label={col.titel}>
+          <b class="col-title">{col.titel}</b>
+          {col.links.map((l) => (
+            <a href={l.href}>{l.label}</a>
+          ))}
+        </nav>
+      ))
+    }
+  </div>
+  <div class="legal">
+    <p>© {year} Hans Tydecks · Code: MIT · Inhalte: CC BY-SA 4.0</p>
   </div>
 </footer>
 
@@ -27,27 +71,68 @@ import { u } from '../../lib/url';
   .inner {
     max-width: 1440px;
     margin: 0 auto;
-    padding: 28px 20px 40px;
+    padding: 36px 20px 24px;
+    display: grid;
+    grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(140px, 1fr));
+    gap: 28px 32px;
+  }
+  .brand {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px 32px;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .logo-link {
+    display: flex;
     align-items: center;
+    gap: 10px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    font-size: 1.02rem;
+    color: var(--text);
+    text-decoration: none;
   }
-  p {
+  .brand p {
     margin: 0;
-    max-width: 640px;
+    max-width: 320px;
   }
-  nav {
+  .col {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px 20px;
+    flex-direction: column;
+    gap: 8px;
   }
-  a {
+  .col-title {
+    color: var(--text-2);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .col a {
     color: var(--text-2);
     text-decoration: none;
   }
-  a:hover {
+  .col a:hover {
     color: var(--accent);
+  }
+  .legal {
+    border-top: 1px solid var(--border);
+  }
+  .legal p {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 16px 20px 28px;
+  }
+  @media (max-width: 780px) {
+    .inner {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 480px) {
+    .inner {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

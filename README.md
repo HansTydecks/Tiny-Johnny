@@ -162,3 +162,5 @@ Tests mit [Vitest](https://vitest.dev), Veröffentlichung über GitHub Pages (`.
   Tiny Johnny ist eine eigenständige Neuimplementierung ohne übernommenen Code.
 - Didaktische Anregungen: [inf-schule.de – Modellrechner Johnny](https://inf-schule.de/rechner/johnny)
 - Code: MIT · Inhalte: CC BY-SA 4.0 (siehe `LICENSE`)
+
+Eine kompakte Projektbeschreibung für Bildungsportale liegt in [`eduki.md`](./eduki.md).
