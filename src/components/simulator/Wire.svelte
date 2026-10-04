@@ -77,7 +77,8 @@
     --wc: var(--cu);
     --idle: color-mix(in srgb, var(--wc) 34%, var(--surface));
     position: relative;
-    z-index: 2;
+    /* über den Register-Karten, damit Pakete beim Verlassen und Ankommen sichtbar bleiben */
+    z-index: 4;
     min-width: 30px;
     min-height: 30px;
   }
