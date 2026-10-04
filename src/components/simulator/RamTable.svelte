@@ -1,42 +1,61 @@
 <script lang="ts">
   import { disassembleValue, formatAddr, formatValue } from '../../lib/johnny/assembler';
-  import { opcodeOf } from '../../lib/johnny/engine';
+  import { opcodeOf, type JohnnyState } from '../../lib/johnny/engine';
   import type { Sim } from '../../lib/johnny/sim.svelte';
 
   interface Props {
     sim: Sim;
+    /** Angezeigter Zustand (während der Wiedergabe eines Makroschritts ein Zwischenzustand) */
+    view?: JohnnyState;
     labels?: Record<string, string>;
+    /** Mindesthöhe; die Tabelle wächst mit dem Platz, den sie bekommt */
     height?: number;
     showPc?: boolean;
     showAb?: boolean;
     selectable?: boolean;
+    /** Gerade gelesene / beschriebene Zelle und ein Zähler, der das Aufleuchten neu startet */
+    read?: number;
+    write?: number;
+    hitKey?: number;
   }
-  let { sim, labels = {}, height = 420, showPc = true, showAb = true, selectable = true }: Props = $props();
+  let {
+    sim,
+    view,
+    labels = {},
+    height = 420,
+    showPc = true,
+    showAb = true,
+    selectable = true,
+    read,
+    write,
+    hitKey = 0,
+  }: Props = $props();
 
+  const st = $derived(view ?? sim.s);
   const ROW = 34;
   const TOTAL = 1000;
   let scrollTop = $state(0);
+  let measured = $state(0);
   let viewport: HTMLDivElement | undefined = $state();
+  const vh = $derived(measured || height);
 
   const start = $derived(Math.max(0, Math.floor(scrollTop / ROW) - 8));
-  const end = $derived(Math.min(TOTAL, Math.ceil((scrollTop + height) / ROW) + 8));
+  const end = $derived(Math.min(TOTAL, Math.ceil((scrollTop + vh) / ROW) + 8));
   const rows = $derived(Array.from({ length: Math.max(0, end - start) }, (_, i) => start + i));
 
   const labelMap = $derived(Object.fromEntries(Object.entries(labels).map(([k, v]) => [Number(k), v])));
-  const readAddr = $derived(sim.events.findLast((e) => e.key === 'ram->db')?.addr);
-  const writeAddr = $derived(sim.events.findLast((e) => e.key === 'db->ram')?.addr);
 
   function ensureVisible(addr: number | undefined) {
     if (addr === undefined || !viewport) return;
     const top = addr * ROW;
     const pad = ROW * 1.5;
     if (top < viewport.scrollTop + pad) viewport.scrollTop = Math.max(0, top - pad);
-    else if (top + ROW > viewport.scrollTop + height - pad) viewport.scrollTop = top + ROW - height + pad;
+    else if (top + ROW > viewport.scrollTop + vh - pad) viewport.scrollTop = top + ROW - vh + pad;
   }
 
   $effect(() => {
-    void sim.pulse;
-    const target = sim.running ? sim.s.pc : (writeAddr ?? readAddr ?? (showPc ? sim.s.pc : undefined));
+    void hitKey;
+    const target = sim.running && write === undefined && read === undefined ? st.pc : (write ?? read ?? (showPc ? st.pc : undefined));
     ensureVisible(target);
   });
   $effect(() => {
@@ -57,12 +76,13 @@
 
 <div class="ram">
   <div class="thead" aria-hidden="true">
-    <span></span><span>Adresse</span><span>Inhalt</span><span>Bedeutung</span>
+    <span></span><span><span class="long">Adresse</span><span class="short">Adr.</span></span><span>Inhalt</span><span>Bedeutung</span>
   </div>
   <div
     class="viewport"
     bind:this={viewport}
-    style="height:{height}px"
+    style="min-height:{height}px"
+    bind:clientHeight={measured}
     onscroll={(e) => (scrollTop = (e.currentTarget as HTMLDivElement).scrollTop)}
     role="grid"
     aria-label="Speicher mit 1000 Zellen"
@@ -72,10 +92,10 @@
   >
     <div class="inner" style="height:{TOTAL * ROW}px">
       {#each rows as i (i)}
-        {@const v = sim.s.ram[i]}
-        {@const d = disassembleValue(v, sim.s.names)}
-        {@const isPc = showPc && sim.s.pc === i}
-        {@const isAb = showAb && sim.s.ab === i}
+        {@const v = st.ram[i]}
+        {@const d = disassembleValue(v, st.names)}
+        {@const isPc = showPc && st.pc === i}
+        {@const isAb = showAb && st.ab === i}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
           class="row"
@@ -90,8 +110,8 @@
           tabindex="-1"
           onclick={() => selectable && sim.select(i)}
         >
-          {#key sim.pulse}
-            <span class="hit" class:read={readAddr === i} class:write={writeAddr === i}></span>
+          {#key hitKey}
+            <span class="hit" class:read={read === i} class:write={write === i}></span>
           {/key}
           <span class="mark" role="gridcell">
             {#if isPc}<span class="pc-tag" title="Programmzähler zeigt hierhin">pc</span>{/if}
@@ -117,6 +137,10 @@
 
 <style>
   .ram {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
@@ -140,6 +164,7 @@
     border-bottom: 1px solid var(--border);
   }
   .viewport {
+    flex: 1 1 0;
     overflow-y: auto;
     position: relative;
     overscroll-behavior: contain;
@@ -258,6 +283,30 @@
     background: color-mix(in srgb, var(--mem) 35%, transparent);
     animation: hit 1.1s ease-out forwards;
   }
+  .short {
+    display: none;
+  }
+  /* Schmale Speicherspalte im Schaltbild */
+  @container (max-width: 310px) {
+    .thead,
+    .row {
+      grid-template-columns: 46px 36px 64px minmax(0, 1fr);
+      column-gap: 5px;
+    }
+    .row {
+      font-size: 0.82rem;
+    }
+    .thead {
+      font-size: 0.62rem;
+    }
+    .long {
+      display: none;
+    }
+    .short {
+      display: inline;
+    }
+  }
+
   @keyframes hit {
     0% { opacity: 1; }
     100% { opacity: 0; }

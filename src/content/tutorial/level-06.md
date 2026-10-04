@@ -60,11 +60,15 @@ schritte:
   - typ: info
     titel: Das Befehlsregister
     text: |
-      Um einen Befehl auszuführen, kopiert die CPU ihn aus dem Speicher in ein eigenes Register im Steuerwerk:
-      das **Befehlsregister** (`ins`, von *instruction*). Dort wird die Zahl in **Opcode** und **Adresse** zerlegt.
+      Um einen Befehl auszuführen, kopiert die CPU ihn aus dem Speicher in ein eigenes Register im **Steuerwerk**
+      (türkis, in der Mitte): das **Befehlsregister** (`ins`, von *instruction*). Dort wird die Zahl in **Opcode**
+      und **Adresse** zerlegt.
 
-      - `db→ins` – Datenbus ins Befehlsregister
-      - `ins→ab` – den **Adressteil** des Befehls auf den Adressbus legen
+      - `db→ins` – Datenbus ins Befehlsregister (der lange Pfeil vom Datenbus herauf)
+      - `ins→ab` – den **Adressteil** des Befehls auf den Adressbus legen (der Pfeil vom Adressteil nach oben)
+
+      Schau genau hin: Nur der Adressteil hat eine Leitung zum Adressbus. Der Opcode bleibt im Steuerwerk.
+    fokus: [ins, db->ins, ins->ab]
   - typ: aktion
     text: |
       Hole den Befehl aus Zelle **000** in das Befehlsregister.

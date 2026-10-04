@@ -29,7 +29,7 @@ schritte:
     erklaerung: "Johnny liest 01.004 als **TAKE 004** und holt die 4 in den Akku. Die Zahl wurde zum Befehl!"
   - typ: aktion
     text: |
-      Führe das Programm mit **Ausführen** aus und lies die Meldung über der Speichertabelle.
+      Führe das Programm mit **Ausführen** aus und lies die Meldung über dem Schaltbild.
     ziel:
       pc: 4
       acc: 4

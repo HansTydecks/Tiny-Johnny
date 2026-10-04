@@ -12,6 +12,7 @@ import { applyAction } from './johnny/actions';
 import { goalMet, prepareProgram, runTests, type Goal } from './johnny/checker';
 import { ramToShare } from './johnny/fileio';
 import { microprogramFor, MICRO_BY_KEY, type Mode } from './johnny/microcode';
+import { FOCUS_IDS, FOCUS_NEEDS, type FocusId } from './johnny/flow';
 
 const root = join(__dirname, '..', 'content');
 const files = (dir: string, ext: string) =>
@@ -60,6 +61,10 @@ describe('Tutorial-Missionen', () => {
           if (p.programm !== undefined) j.loadRam(asm(p.programm, mode, j));
           for (const [k, v] of Object.entries(p.ram ?? {})) j.writeRam(Number(k), v as number);
           for (const [k, v] of Object.entries(p.register ?? {})) (j as any)[k] = v;
+        }
+        for (const f of step.fokus ?? []) {
+          expect(FOCUS_IDS, `${where}: unbekannter Fokus ${f}`).toContain(f);
+          for (const part of FOCUS_NEEDS[f as FocusId]) expect(d.sichtbar, `${where}: Fokus ${f} braucht sichtbares ${part}`).toContain(part);
         }
         used.clear();
         if (step.typ === 'aktion') {

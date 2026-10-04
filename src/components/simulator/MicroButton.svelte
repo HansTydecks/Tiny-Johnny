@@ -5,10 +5,13 @@
   interface Props {
     sim: Sim;
     k: string;
-    showNext?: boolean;
+    /** Ist als Nächstes dran (laut Mikroprogrammzähler) */
+    next?: boolean;
+    /** Zähler – jede Änderung > 0 lässt den Knopf aufblinken (der Mikrobefehl wird gerade ausgeführt) */
+    firing?: number;
     disabled?: boolean;
   }
-  let { sim, k, showNext = true, disabled = false }: Props = $props();
+  let { sim, k, next = false, firing = 0, disabled = false }: Props = $props();
 
   const info = $derived(MICRO_BY_KEY[k]);
   const tone = $derived(
@@ -22,62 +25,47 @@
             ? 'err'
             : 'cu',
   );
-  const hit = $derived(sim.events.some((e) => e.key === k));
-  const isNext = $derived(showNext && sim.controlUnit && sim.s.microcode[sim.s.mc] === info.code && !sim.running);
 </script>
 
 <button
   type="button"
   class="mb tone-{tone}"
-  class:next={isNext}
+  class:next
   class:recording={!!sim.recording}
   {disabled}
-  title={`${info.de}: ${info.info}`}
+  title={`${info.label}: ${info.de}. ${info.info}`}
   aria-label={`${info.label} – ${info.de}`}
   onclick={() => sim.exec(k)}
 >
-  {#key sim.pulse}
-    <span class="flash" class:on={hit} aria-hidden="true"></span>
+  {#key firing}
+    <span class="flash" class:on={firing > 0} aria-hidden="true"></span>
   {/key}
   <span class="k">{info.label}</span>
-  <span class="d">{info.de}</span>
-  {#if isNext}<span class="badge" title="als Nächstes dran"></span>{/if}
+  {#if next}<span class="badge" title="als Nächstes dran"></span>{/if}
 </button>
 
 <style>
   .mb {
     --tc: var(--cu);
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    gap: 1px;
-    min-height: 46px;
-    padding: 6px 10px 6px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border-strong);
+    min-height: 30px;
+    padding: 3px 10px;
+    border-radius: 9px;
+    border: 1.5px solid color-mix(in srgb, var(--tc) 55%, var(--border-strong));
     background: var(--surface);
+    box-shadow: var(--shadow-s);
     cursor: pointer;
-    text-align: left;
     overflow: hidden;
     transition: border-color 0.15s, background 0.15s, transform 0.05s;
     -webkit-tap-highlight-color: transparent;
-    min-width: 0;
-  }
-  .mb::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 6px;
-    bottom: 6px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: var(--tc);
+    white-space: nowrap;
   }
   .mb:hover {
     border-color: var(--tc);
-    background: color-mix(in srgb, var(--tc) 6%, var(--surface));
+    background: color-mix(in srgb, var(--tc) 10%, var(--surface));
   }
   .mb:active {
     transform: translateY(1px);
@@ -92,35 +80,29 @@
   .tone-cu { --tc: var(--cu); }
   .tone-err { --tc: var(--err); }
   .k {
+    position: relative;
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     color: var(--text);
-    white-space: nowrap;
   }
-  .d {
-    font-size: 0.72rem;
-    color: var(--text-3);
-    line-height: 1.2;
-    max-width: 100%;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  .recording {
+    border-style: dotted;
   }
   .next {
     border-style: dashed;
     border-color: var(--cu);
-    border-width: 1.5px;
-    background: color-mix(in srgb, var(--cu) 5%, var(--surface));
+    border-width: 2px;
+    background: color-mix(in srgb, var(--cu) 8%, var(--surface));
+    padding-right: 18px;
   }
   .badge {
     position: absolute;
-    right: 7px;
-    top: 7px;
-    width: 8px;
-    height: 8px;
+    right: 6px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
     border-radius: 50%;
     background: var(--cu);
     animation: breathe 1.6s ease-in-out infinite;
@@ -138,8 +120,8 @@
     opacity: 0;
   }
   .flash.on {
-    animation: flash 0.9s ease-out;
-    background: color-mix(in srgb, var(--tc) 28%, transparent);
+    animation: flash 0.8s ease-out;
+    background: color-mix(in srgb, var(--tc) 35%, transparent);
   }
   @keyframes flash {
     0% { opacity: 1; }

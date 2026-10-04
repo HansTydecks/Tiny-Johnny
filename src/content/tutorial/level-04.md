@@ -19,14 +19,16 @@ schritte:
       ist die alte weg. Die CPU braucht deshalb eigene, winzige Speicherplätze direkt im Prozessor:
       **Register**.
 
-      Johnnys wichtigstes Register ist der **Akkumulator** (`acc`, lateinisch „Sammler“) im **Rechenwerk** (lila).
-      Neue Mikrobefehle:
+      Johnnys wichtigstes Register ist der **Akkumulator** (`acc`, lateinisch „Sammler“) im **Rechenwerk** (lila, rechts).
+      Das Rechenwerk gehört zum **Prozessor (CPU)** – im Schaltbild gestrichelt umrandet. Mit dem Speicher ist es
+      nur über den **Datenbus** verbunden. Neue Mikrobefehle:
 
-      - `db→acc` – Datenbus in den Akku kopieren
-      - `acc→db` – Akku auf den Datenbus legen
-      - `acc:=0`, `acc++`, `acc--` – Akku auf 0 setzen, um 1 erhöhen, um 1 verringern
+      - `db→acc` – Datenbus in den Akku kopieren (Pfeil hinauf zum Akku)
+      - `acc→db` – Akku auf den Datenbus legen (Pfeil hinunter zum Bus)
+      - `acc:=0`, `acc++`, `acc--` – Akku auf 0 setzen, um 1 erhöhen, um 1 verringern (Knöpfe direkt am Akku)
 
       Die Lampe **=0?** leuchtet, wenn der Akkumulator 0 ist.
+    fokus: [acc, db->acc, acc->db]
   - typ: aktion
     text: |
       Hole die **7** aus Zelle **010** in den Akkumulator.
@@ -34,6 +36,7 @@ schritte:
       acc: 7
       benutzt: [db->acc]
     tipp: Adresse 010 anlegen → `ram→db` → `db→acc`.
+    erfolg: Die 7 ist vom Speicher über den Datenbus in den Akkumulator gewandert – zwei Pfeile, zwei Mikrobefehle.
     loesung: ["ab = 10", "micro ram->db", "micro db->acc"]
   - typ: aktion
     text: |

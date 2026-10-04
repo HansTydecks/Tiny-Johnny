@@ -49,6 +49,7 @@ schritte:
       Unter **Mehr → Mikroprogramm-Steuerung** kannst du den Mikrocode ausblenden.
       Führe dann den kompletten Befehl **von Hand** mit Mikrobefehlen aus: Befehl holen, ausführen, `pc++`.
       (`ins→mc` brauchst du nicht – den Befehl decodierst du selbst im Kopf.)
+      Tipp: Denk an den Weg der Daten – jeder Knopf sitzt auf dem Pfeil, über den er Daten schickt.
     ziel:
       acc: 5
       pc: 2

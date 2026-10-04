@@ -42,6 +42,8 @@ export interface MicroEvent {
   addr?: number;
   /** true, wenn die Operation wegen einer Grenze nichts/abgeschnitten verändert hat */
   clamped?: boolean;
+  /** Mikrocode-Adresse, wenn der Mikrobefehl per Mikroschritt aus dem Mikrocode kam */
+  at?: number;
 }
 
 export type StopReason = 'halt' | 'stuck' | 'error' | 'limit';
@@ -179,8 +181,9 @@ export class Johnny {
   /**
    * Führt einen Mikrobefehl direkt aus (wie ein Klick auf den Knopf im Original).
    * Der Mikroprogrammzähler wird dabei NICHT weitergezählt.
+   * `at` ist die Mikrocode-Adresse, wenn der Aufruf aus einem Mikroschritt kommt (nur für die Anzeige).
    */
-  exec(codeOrKey: number | string): MicroEvent {
+  exec(codeOrKey: number | string, at?: number): MicroEvent {
     const info = typeof codeOrKey === 'string' ? MICRO_BY_KEY[codeOrKey] : MICRO_BY_CODE[codeOrKey];
     if (!info) throw new Error(`Unbekannter Mikrobefehl: ${codeOrKey}`);
     let e: MicroEvent;
@@ -297,6 +300,7 @@ export class Johnny {
       default:
         throw new Error(`Unbekannter Mikrobefehl: ${codeOrKey}`);
     }
+    if (at !== undefined) e.at = at;
     this.ticks++;
     this.used.add(info.key);
     this.record(info.code);
@@ -319,7 +323,7 @@ export class Johnny {
           : `In Mikrocode-Adresse ${String(this.mc).padStart(3, '0')} steht kein Mikrobefehl. Fehlt am Ende des Mikroprogramms „mc:=0“? Johnny hält an.`;
       return this.fail('no-microcode', msg);
     }
-    const e = this.exec(code);
+    const e = this.exec(code, this.mc);
     if (code !== 5 && code !== 7) this.mc++;
     return e;
   }

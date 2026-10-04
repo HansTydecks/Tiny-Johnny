@@ -16,6 +16,11 @@ Leitfrage: *Woher weiß der Computer eigentlich, was er tun soll?*
 Der Simulator verhält sich **exakt wie Johnny 2.0** (gleicher Mikrocode, gleiche Grenzen, gleiche Dateiformate).
 Das wird bei jeder Änderung automatisch getestet.
 
+Aufgebaut ist er als **Schaltbild wie im Original**: Adressbus oben, Datenbus unten, dazwischen Speicher, Steuerwerk
+und Rechenwerk. Jeder Mikrobefehl-Knopf sitzt auf dem Pfeil, über den er Daten schickt. Zusätzlich zum Original zeigt
+Tiny Johnny den **Datenfluss**: Bei jedem Mikrobefehl wandert der transportierte Wert als Paket über seine Leitung,
+ein Makroschritt wird Mikrobefehl für Mikrobefehl im Zeitraffer abgespielt.
+
 ---
 
 ## Inhalte bearbeiten
@@ -99,6 +104,7 @@ schritte:
     tipp: Erst die Adresse anlegen …
     erfolg: Text nach dem Erreichen des Ziels
     loesung: ["ab = 100", "micro ram->db"]  # Lösungsweg für den automatischen Test
+    fokus: [db, ram->db]                     # optional: im Schaltbild hervorheben
   - typ: quiz
     frage: Welche Aussagen stimmen?
     optionen: ["A", "B", "C"]
@@ -112,6 +118,11 @@ schritte:
 
 Ein Schritt kann mit `vorbereitung:` den Simulator vorbereiten (`reset: true`, `ramLeeren: true`, `programm: |…`,
 `ram: {...}`, `register: {acc: 9, pc: 1}`).
+
+Mit `fokus:` hebt ein Schritt (jeder Typ) Teile des Schaltbilds hervor, solange er angezeigt wird. Erlaubt sind die
+Bauteile `ram ab db acc ins pc mc microcode alu cu` und die Leitungen `ab->ram ram->db db->ram db->acc acc->db db->ins
+ins->ab ins->mc ins->pc pc->ab flag` (`flag` = Signalleitung von der Lampe =0? zu `=0:pc++`). Der Test prüft, dass
+alles Hervorgehobene in der Mission auch sichtbar ist.
 
 Lösungswege (`loesung`) bestehen aus: `ram 010 = 7`, `ab = 10`, `db = 7`, `micro ram->db`, `mikroschritt`,
 `makroschritt`, `ausfuehren`, `reset`, `modus bonsai`, `aufnahme 11 DBL`, `aufnahme ende`.
@@ -146,7 +157,7 @@ npm run build    # statische Website nach dist/
 ## Aufbau
 
 ```
-src/lib/johnny/      Johnny-Engine (engine.ts), Mikrocode, Assembler, Dateiformate, Prüfung, Tests
+src/lib/johnny/      Johnny-Engine (engine.ts), Mikrocode, Assembler, Dateiformate, Prüfung, Datenfluss (flow.ts), Tests
 src/components/      simulator/ (Johnny), learning/ (Missionen, Aufgaben, Quiz …),
                      vonneumann/, storage/, io/ (Simulationen), content/ (Textbausteine)
 src/content/         kapitel/, tutorial/, aufgaben/, beispiele/

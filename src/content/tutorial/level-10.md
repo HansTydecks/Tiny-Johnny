@@ -15,12 +15,14 @@ schritte:
     titel: Springen
     text: |
       **JMP** *adr* („jump“) setzt den Programmzähler auf *adr*. Der nächste Befehl wird also von dort geholt.
-      Im Mikrocode ist das ganz kurz: `ins→pc`, `mc:=0`.
+      Im Mikrocode ist das ganz kurz: `ins→pc`, `mc:=0`. Im Schaltbild ist `ins→pc` der Pfeil vom Adressteil
+      des Befehlsregisters hinüber zum Programmzähler.
 
       **INC** *adr* erhöht den Inhalt einer Zelle um 1.
 
       Im Speicher steht ein kleines Programm:
       `000: INC 100` und `001: JMP 000`.
+    fokus: [ins->pc, pc]
   - typ: vorhersage
     frage: Welcher Wert steht nach **6 Makroschritten** in Zelle 100?
     antwort: 3

@@ -27,7 +27,11 @@ schritte:
       Gerechnet wird also **immer** mit dem Akkumulator und der Zahl auf dem Datenbus.
       Das Ergebnis landet wieder im Akkumulator.
 
-      Unten gibt es jetzt ein **Protokoll** – dort steht, was bei jedem Klick passiert ist.
+      Darum sitzen `plus` und `minus` auf **demselben Pfeil** wie `db→acc`: In allen drei Fällen fließt die Zahl
+      vom Datenbus ins Rechenwerk – nur was dort mit ihr passiert, ist verschieden.
+
+      Unter dem Simulator gibt es jetzt ein **Protokoll** – dort steht, was bei jedem Klick passiert ist.
+    fokus: [db->acc, acc]
   - typ: vorhersage
     frage: Im Akku steht **10**, auf dem Datenbus **4**. Du klickst `minus`. Was steht danach im Akku?
     antwort: 6

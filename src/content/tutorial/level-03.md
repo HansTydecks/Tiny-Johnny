@@ -15,22 +15,27 @@ schritte:
   - typ: info
     titel: Der zweite Bus
     text: |
-      Der **Datenbus** (grün) transportiert die **Inhalte** – und zwar in **beide Richtungen**:
-      vom Speicher zur CPU (lesen) und von der CPU zum Speicher (schreiben).
+      Unten verläuft jetzt der **Datenbus** (grün). Er transportiert die **Inhalte** – und zwar in
+      **beide Richtungen**: vom Speicher zur CPU (lesen) und von der CPU zum Speicher (schreiben).
+      Deshalb verbinden ihn **zwei Pfeile** mit dem Speicher.
 
-      Dafür gibt es zwei **Mikrobefehle**. Mikrobefehle sind die kleinsten Schritte, die Johnny kann:
+      Auf jedem Pfeil sitzt der Knopf für einen **Mikrobefehl**. Mikrobefehle sind die kleinsten Schritte, die Johnny kann:
 
       - `ram→db` – **lesen**: Der Inhalt der ausgewählten Zelle wird auf den Datenbus gelegt.
       - `db→ram` – **schreiben**: Die Zahl auf dem Datenbus wird in die ausgewählte Zelle geschrieben.
 
       Welche Zelle „ausgewählt“ ist, bestimmt immer der **Adressbus**.
+
+      Achte beim Klicken auf den Pfeil: Die Zahl wandert als kleines **Paket** daran entlang.
+      So siehst du, woher die Daten kommen und wohin sie fließen.
+    fokus: [db, ram->db, db->ram]
   - typ: aktion
     text: |
       Hole den Inhalt von Zelle **100** auf den Datenbus.
     ziel:
       db: 42
       benutzt: [ram->db]
-    tipp: Zuerst die Adresse 100 auf den Adressbus legen, dann den Mikrobefehl `ram→db` anklicken.
+    tipp: Zuerst die Adresse 100 auf den Adressbus legen, dann den Knopf `ram→db` auf dem Pfeil vom Speicher hinunter zum Datenbus anklicken.
     loesung: ["ab = 100", "micro ram->db"]
   - typ: vorhersage
     frage: Zelle 100 wurde gerade gelesen. Welche Zahl steht **jetzt in Zelle 100**?

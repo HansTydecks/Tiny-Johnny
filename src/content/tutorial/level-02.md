@@ -20,14 +20,15 @@ schritte:
       Der erste Teil davon ist der **Adressbus**. Über ihn sagt die CPU dem Speicher:
       *„Ich meine jetzt Zelle Nummer …“*
 
-      Rechts siehst du den Adressbus in **Orange**. Die Zelle, auf die er zeigt, ist in der Tabelle
-      orange markiert (`ab`).
+      Oben siehst du den Adressbus als **orange Schiene**. Der Pfeil zum Speicher zeigt, was er tut:
+      Die Adresse auf dem Bus **wählt eine Zelle aus**. Diese Zelle ist in der Tabelle orange markiert (`ab`).
+    fokus: [ab, ab->ram]
   - typ: aktion
     text: |
       Lege die Adresse **100** auf den Adressbus.
     ziel:
       ab: 100
-    tipp: Tippe `100` in das Eingabefeld beim Adressbus und klicke auf **anlegen**.
+    tipp: Tippe `100` in das Eingabefeld auf der Adressbus-Schiene und klicke auf **anlegen**.
     erfolg: Zelle 100 ist jetzt ausgewählt. Beachte – ihr Inhalt hat sich **nicht** verändert. Der Adressbus wählt nur aus.
     loesung: ["ab = 100"]
   - typ: quiz
@@ -65,7 +66,7 @@ schritte:
     titel: Merke
     text: |
       - Der **Adressbus** legt fest, **welche Zelle** gemeint ist.
-      - Er führt nur in **eine Richtung**: von der CPU zum Speicher.
+      - Er führt nur in **eine Richtung**: von der CPU zum Speicher – deshalb hat der Pfeil nur eine Spitze.
       - Johnnys Adressbus hat 3 Dezimalstellen → 1000 Zellen.
 
       Die Zelle ist jetzt ausgewählt – aber ihr Inhalt ist noch nicht bei der CPU. Dafür brauchen wir

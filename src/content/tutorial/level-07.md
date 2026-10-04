@@ -22,7 +22,8 @@ schritte:
     titel: Rezepte im Steuerwerk
     text: |
       Für jeden Befehl ist im Steuerwerk ein festes **Rezept** hinterlegt: eine Liste von Mikrobefehlen.
-      Diese Liste heißt **Mikrocode** (unten rechts im Steuerwerk).
+      Diese Liste heißt **Mikrocode**. Alle Rezepte stehen in der Tabelle unter dem Schaltbild.
+      Das Rezept, das gerade abgearbeitet wird, siehst du im Steuerwerk unter dem **Mikroprogrammzähler**.
 
       Beispiel **TAKE** (Mikrocode-Adressen 010–014):
       `ins→ab`, `ram→db`, `db→acc`, `pc++`, `mc:=0`
@@ -31,11 +32,12 @@ schritte:
 
       Der **Mikroprogrammzähler** (`mc`) zeigt auf den Mikrobefehl, der als Nächstes dran ist.
       Der Knopf **Mikroschritt** führt genau diesen einen Mikrobefehl aus und zählt `mc` um 1 weiter.
+    fokus: [mc, ins->mc]
   - typ: quiz
     frage: Im Befehlsregister steht **01.010** (TAKE). Bei welcher Mikrocode-Adresse beginnt das Rezept?
     optionen: ["010", "001", "100"]
     richtig: 0
-    erklaerung: Das Rezept für Opcode *n* beginnt bei Adresse *n × 10*. Opcode 01 → 010, Opcode 02 → 020 usw. Genau das erledigt der Mikrobefehl `ins→mc`.
+    erklaerung: Das Rezept für Opcode *n* beginnt bei Adresse *n × 10*. Opcode 01 → 010, Opcode 02 → 020 usw. Genau das erledigt der Mikrobefehl `ins→mc` – im Schaltbild der Pfeil vom Opcode hinunter zum Mikroprogrammzähler.
   - typ: aktion
     vorbereitung:
       reset: true
@@ -50,11 +52,12 @@ schritte:
     frage: Welcher Mikrobefehl ist jetzt als Nächstes dran?
     optionen: ["`ins→ab`", "`pc→ab`", "`ram→db`"]
     richtig: 0
-    erklaerung: Im Mikrocode steht bei 010 der Befehl `ins→ab`. Der passende Knopf ist gestrichelt markiert.
+    erklaerung: Im Mikrocode steht bei 010 der Befehl `ins→ab`. Im Schaltbild ist der Pfeil, über den als Nächstes Daten fließen, **gestreift** markiert.
+    fokus: [ins->ab]
   - typ: aktion
     text: |
       Arbeite das TAKE-Rezept mit **Mikroschritt** ab, bis der Mikroprogrammzähler wieder auf **000** steht.
-      Beobachte das Protokoll!
+      Beobachte, über welche Pfeile die Zahlen wandern – und wie der Zeiger im Rezept weiterrückt.
     ziel:
       mc: 0
       acc: 7

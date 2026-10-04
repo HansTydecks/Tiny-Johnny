@@ -23,8 +23,8 @@ schritte:
 
       `ins→ab`, `ram→db`, `db→acc`, `plus`, `acc→db`, `db→ram`, `pc++`, `mc:=0`
 
-      Unten im Mikrocode-Bereich gibt es die **Aufnahme**: Du wählst einen Platz und einen Namen,
-      startest die Aufnahme und klickst die Mikrobefehle der Reihe nach an.
+      In der Mikrocode-Tabelle unter dem Schaltbild gibt es die **Aufnahme**: Du wählst einen Platz und einen Namen,
+      startest die Aufnahme und klickst die Mikrobefehle der Reihe nach an – direkt auf den Pfeilen im Schaltbild.
   - typ: quiz
     frage: Warum muss am Ende des Rezepts `mc:=0` stehen?
     optionen:

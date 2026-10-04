@@ -31,7 +31,9 @@ Tiny Johnny besteht aus vier Teilen, die aufeinander aufbauen:
   aufnehmen, Bonsai-Modus sowie Speichern/Laden von `.ram`- und `.mc`-Dateien.
 
 Der Simulator verhält sich exakt wie das Original Johnny 2.0 (gleicher Mikrocode, gleiche Grenzen, gleiche
-Dateiformate) – das wird bei jeder Änderung automatisch getestet. Didaktisch durchgängig sind eine einheitliche
+Dateiformate) – das wird bei jeder Änderung automatisch getestet. Er ist wie das Original als Schaltbild aufgebaut
+(Adressbus oben, Datenbus unten, dazwischen Speicher, Steuerwerk und Rechenwerk) und macht zusätzlich den
+Datenfluss sichtbar: Jeder Wert wandert sichtbar über die Leitung, über die er transportiert wird. Didaktisch durchgängig sind eine einheitliche
 Farbcodierung der Bauteile (Speicher, Adressbus, Datenbus, Rechenwerk, Steuerwerk) sowie deutsche Bezeichnungen
 neben den Original-Kürzeln, damit der Umstieg auf den Original-Simulator leichtfällt.
 

@@ -29,6 +29,7 @@ schritte:
 
       Jetzt verstehst du auch das `pc++` am Ende jedes Rezepts: Nach dem Befehl zeigt der Programmzähler
       auf die **nächste Zelle**.
+    fokus: [pc, pc->ab]
   - typ: quiz
     frage: Befehlsregister und Programmzähler – was stimmt?
     optionen:
@@ -48,6 +49,10 @@ schritte:
       4. `ins→mc` – zum Rezept des Befehls springen
 
       Jedes Rezept endet mit `mc:=0` – und dann kommt wieder FETCH. **Johnny läuft im Kreis.**
+
+      Im Schaltbild kannst du den Weg verfolgen: Die **Adresse** geht vom Programmzähler über den Adressbus zum
+      Speicher, der **Befehl** kommt über den Datenbus zurück ins Befehlsregister.
+    fokus: [pc->ab, ram->db, db->ins, ins->mc]
   - typ: aktion
     text: |
       Führe mit **Mikroschritt** die vier FETCH-Schritte aus.
@@ -56,6 +61,16 @@ schritte:
       mc: 10
     erfolg: Der Befehl TAKE 010 wurde geholt, und der Mikroprogrammzähler zeigt auf das TAKE-Rezept.
     loesung: ["mikroschritt", "mikroschritt", "mikroschritt", "mikroschritt"]
+  - typ: quiz
+    frage: Welchen Weg hat der Befehl **TAKE 010** beim Holen genommen?
+    optionen:
+      - "Speicher → Datenbus → Befehlsregister"
+      - "Speicher → Adressbus → Befehlsregister"
+      - "Programmzähler → Datenbus → Akkumulator"
+    richtig: 0
+    erklaerung: |
+      Über den **Adressbus** läuft nur die Adresse (vom Programmzähler zum Speicher).
+      Der Befehl selbst ist eine Zahl – er wandert über den **Datenbus** ins Befehlsregister.
   - typ: vorhersage
     frage: Wenn der TAKE-Befehl fertig ist – welche Adresse steht dann im **Programmzähler**?
     antwort: 1
@@ -73,6 +88,9 @@ schritte:
     text: |
       Ein **Makroschritt** erledigt einen ganzen Befehl auf einmal: FETCH und das Rezept – so lange,
       bis der Mikroprogrammzähler wieder auf 000 steht.
+
+      Damit du trotzdem siehst, was passiert, spielt Johnny die Mikrobefehle danach im **Zeitraffer** ab:
+      Die Pakete wandern nacheinander über die Pfeile, der Zeiger rückt durch das Rezept.
   - typ: vorhersage
     frage: Der nächste Befehl ist **ADD 011**. Was steht nach dem Makroschritt im Akkumulator?
     antwort: 10

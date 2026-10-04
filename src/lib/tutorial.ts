@@ -17,11 +17,18 @@ export interface Prep {
   register?: Partial<Record<'acc' | 'ab' | 'db' | 'ins' | 'pc' | 'mc', number>>;
 }
 
-export type StepView =
-  | { typ: 'info'; titel?: string; html: string; prep?: Prep }
-  | { typ: 'aktion'; titel?: string; html: string; ziel: Goal; tipp?: string; erfolg?: string; prep?: Prep }
-  | { typ: 'quiz'; titel?: string; frage: string; optionen: string[]; richtig: number | number[]; erklaerung: string; prep?: Prep }
-  | { typ: 'vorhersage'; titel?: string; frage: string; antwort: number; einheit?: string; erklaerung: string; prep?: Prep };
+/** Gemeinsam für alle Schritte: Hervorhebung im Schaltbild */
+interface StepBase {
+  fokus?: string[];
+}
+
+export type StepView = StepBase &
+  (
+    | { typ: 'info'; titel?: string; html: string; prep?: Prep }
+    | { typ: 'aktion'; titel?: string; html: string; ziel: Goal; tipp?: string; erfolg?: string; prep?: Prep }
+    | { typ: 'quiz'; titel?: string; frage: string; optionen: string[]; richtig: number | number[]; erklaerung: string; prep?: Prep }
+    | { typ: 'vorhersage'; titel?: string; frage: string; antwort: number; einheit?: string; erklaerung: string; prep?: Prep }
+  );
 
 export interface LevelView {
   id: string;
@@ -77,7 +84,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
     schritte: d.schritte.map((s): StepView => {
       switch (s.typ) {
         case 'info':
-          return { typ: 'info', titel: s.titel, html: md(s.text), prep: prep(s.vorbereitung) };
+          return { typ: 'info', titel: s.titel, html: md(s.text), prep: prep(s.vorbereitung), fokus: s.fokus };
         case 'aktion':
           return {
             typ: 'aktion',
@@ -91,6 +98,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
             tipp: s.tipp ? md(s.tipp) : undefined,
             erfolg: s.erfolg ? md(s.erfolg) : undefined,
             prep: prep(s.vorbereitung),
+            fokus: s.fokus,
           };
         case 'quiz':
           return {
@@ -101,6 +109,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
             richtig: s.richtig,
             erklaerung: md(s.erklaerung),
             prep: prep(s.vorbereitung),
+            fokus: s.fokus,
           };
         case 'vorhersage':
           return {
@@ -111,6 +120,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
             einheit: s.einheit,
             erklaerung: md(s.erklaerung),
             prep: prep(s.vorbereitung),
+            fokus: s.fokus,
           };
       }
     }),

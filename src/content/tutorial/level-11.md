@@ -24,7 +24,8 @@ schritte:
       Das Rezept: `ins→ab`, `ram→db`, `db→acc`, `=0:pc++`, `pc++`, `mc:=0`
 
       Der Mikrobefehl `=0:pc++` erhöht den Programmzähler **nur, wenn der Akku 0 ist**.
-      Das ist die einzige Stelle, an der Johnny etwas „entscheidet“!
+      Das ist die einzige Stelle, an der Johnny etwas „entscheidet“! Im Schaltbild siehst du dafür eine dünne
+      **Signalleitung** von der Lampe **=0?** im Rechenwerk hinüber zum Steuerwerk.
 
       Typisches Muster:
       ```
@@ -32,6 +33,7 @@ schritte:
       JMP weiter   ; nein → weitermachen
       HLT          ; ja → fertig
       ```
+    fokus: [flag, acc, pc]
   - typ: vorhersage
     frage: Zelle 100 enthält **3**, der Programmzähler steht auf 000 (TST 100). Welche Adresse steht nach diesem Makroschritt im Programmzähler?
     antwort: 1
@@ -42,7 +44,8 @@ schritte:
     erklaerung: "Der Akku wäre 0 → `=0:pc++` **und** `pc++` → 002. JMP 003 wird übersprungen, Johnny landet beim HLT."
   - typ: aktion
     text: |
-      Führe das Programm aus (Makroschritte oder Ausführen), bis es anhält. Beobachte den Programmzähler!
+      Führe das Programm aus (Makroschritte oder Ausführen), bis es anhält. Beobachte den Programmzähler
+      und das Signal auf der Leitung von der Lampe **=0?**!
     ziel:
       halted: true
       ram: { "100": 0 }

@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { FOCUS_IDS } from './lib/johnny/flow';
 
 const farbe = z.enum(['mem', 'abus', 'dbus', 'alu', 'cu', 'io', 'sbus', 'accent']);
 
@@ -54,8 +55,11 @@ const vorbereitung = z
   })
   .optional();
 
+/** Bauteile/Leitungen, die während des Schritts im Schaltbild hervorgehoben werden */
+const fokus = z.array(z.enum(FOCUS_IDS)).optional();
+
 const schritt = z.discriminatedUnion('typ', [
-  z.object({ typ: z.literal('info'), titel: z.string().optional(), text: z.string(), vorbereitung }),
+  z.object({ typ: z.literal('info'), titel: z.string().optional(), text: z.string(), vorbereitung, fokus }),
   z.object({
     typ: z.literal('aktion'),
     titel: z.string().optional(),
@@ -65,6 +69,7 @@ const schritt = z.discriminatedUnion('typ', [
     erfolg: z.string().optional(),
     loesung: z.array(z.string()).default([]),
     vorbereitung,
+    fokus,
   }),
   z.object({
     typ: z.literal('quiz'),
@@ -74,6 +79,7 @@ const schritt = z.discriminatedUnion('typ', [
     richtig: z.union([z.number(), z.array(z.number())]),
     erklaerung: z.string(),
     vorbereitung,
+    fokus,
   }),
   z.object({
     typ: z.literal('vorhersage'),
@@ -83,6 +89,7 @@ const schritt = z.discriminatedUnion('typ', [
     einheit: z.string().optional(),
     erklaerung: z.string(),
     vorbereitung,
+    fokus,
   }),
 ]);
 

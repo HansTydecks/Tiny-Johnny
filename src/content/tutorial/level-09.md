@@ -45,7 +45,7 @@ schritte:
   - typ: aktion
     text: |
       Drücke **Reset** und dann **Ausführen**. Beobachte, wie Johnny arbeitet.
-      Mit dem Regler kannst du die Geschwindigkeit ändern.
+      Mit dem Regler kannst du die Geschwindigkeit ändern – stellst du ihn auf „langsam“, siehst du die Zahlen über die Pfeile wandern.
     ziel:
       halted: true
       ram: { "103": 26 }

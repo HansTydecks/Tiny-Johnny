@@ -214,14 +214,22 @@
   </aside>
 
   <div class="sim">
-    <Johnny {sim} show={level.sichtbar} micro={level.mikro} features={level.funktionen} labels={level.zellen} ramHeight={372} />
+    <Johnny
+      {sim}
+      show={level.sichtbar}
+      micro={level.mikro}
+      features={level.funktionen}
+      labels={level.zellen}
+      ramHeight={372}
+      focus={finished ? [] : (step.fokus ?? [])}
+    />
   </div>
 </div>
 
 <style>
   .mission {
     display: grid;
-    grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+    grid-template-columns: minmax(290px, 360px) minmax(0, 1fr);
     gap: 16px;
     align-items: start;
   }
