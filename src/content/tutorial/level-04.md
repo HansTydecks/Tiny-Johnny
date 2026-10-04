@@ -4,7 +4,7 @@ titel: Der Akkumulator
 kurz: Ein Register in der CPU merkt sich die Zahl, mit der gerade gearbeitet wird.
 leitfrage: Wo merkt sich die CPU eine Zahl, mit der sie gerade arbeitet?
 sichtbar: [ram, ab, db, acc]
-funktionen: [abInput, dbInput]
+funktionen: [abInput]
 mikro: [ram->db, db->ram, db->acc, acc->db, acc:=0, acc++, acc--]
 programm: |
   010: 7
@@ -28,6 +28,9 @@ schritte:
       - `acc:=0`, `acc++`, `acc--` – Akku auf 0 setzen, um 1 erhöhen, um 1 verringern (Knöpfe direkt am Akku)
 
       Die Lampe **=0?** leuchtet, wenn der Akkumulator 0 ist.
+
+      Von Hand legst du ab jetzt **keine Zahlen** mehr auf den Datenbus: Werte kommen aus dem Speicher
+      oder entstehen im Rechenwerk. Nur die Adresse tippst du noch selbst ein – es gibt ja noch kein Steuerwerk.
     fokus: [acc, db->acc, acc->db]
   - typ: aktion
     text: |

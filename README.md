@@ -119,6 +119,23 @@ schritte:
 Ein Schritt kann mit `vorbereitung:` den Simulator vorbereiten (`reset: true`, `ramLeeren: true`, `programm: |…`,
 `ram: {...}`, `register: {acc: 9, pc: 1}`).
 
+Mit `funktionen:` bekommt ein Schritt eigene Bedienelemente, die die der Mission ersetzen – so gibt es ein
+Eingabefeld genau dort, wo es gebraucht wird (`funktionen: []` sperrt alles). Der Test prüft, dass jeder Lösungsweg
+nur benutzt, was im Schritt erlaubt ist.
+
+**Händische Eingaben werden schrittweise zurückgenommen** – wie im echten Johnny soll man am Ende nur noch in den
+Speicher schreiben, alles andere holt Johnny selbst:
+
+| Mission | Von Hand eintragen |
+|---|---|
+| 1 | Speicherzellen |
+| 2 | Adressbus |
+| 3 | Adressbus; Datenbus nur im Schritt „99 von Hand“ |
+| 4–5 | nur Adressbus (Werte kommen aus dem Speicher oder dem Rechenwerk) |
+| 6 | Adressbus nur zum Holen des Befehls; beim Ausführen gesperrt (`ins→ab`) |
+| 7, 8, 13 | nichts |
+| 9–12, 14 | nur Speicher (Programme) |
+
 Mit `fokus:` hebt ein Schritt (jeder Typ) Teile des Schaltbilds hervor, solange er angezeigt wird. Erlaubt sind die
 Bauteile `ram ab db acc ins pc mc microcode alu cu` und die Leitungen `ab->ram ram->db db->ram db->acc acc->db db->ins
 ins->ab ins->mc ins->pc pc->ab flag` (`flag` = Signalleitung von der Lampe =0? zu `=0:pc++`). Der Test prüft, dass

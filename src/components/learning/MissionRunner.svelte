@@ -218,7 +218,7 @@
       {sim}
       show={level.sichtbar}
       micro={level.mikro}
-      features={level.funktionen}
+      features={finished ? level.funktionen : (step.funktionen ?? level.funktionen)}
       labels={level.zellen}
       ramHeight={372}
       focus={finished ? [] : (step.fokus ?? [])}

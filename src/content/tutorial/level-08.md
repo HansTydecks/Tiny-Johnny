@@ -21,7 +21,8 @@ schritte:
     titel: Der Programmzähler
     text: |
       Der **Programmzähler** (`pc`, auch *Befehlszähler*) enthält die **Adresse des nächsten Befehls**.
-      Nach einem Reset steht er auf 000 – dort beginnt jedes Programm.
+      Nach einem Reset steht er auf 000 – dort beginnt jedes Programm. Die Adresse, die du in Mission 6 noch
+      selbst eingetippt hast, kommt jetzt von ihm.
 
       Zwei neue Mikrobefehle:
       - `pc→ab` – Adresse aus dem Programmzähler auf den Adressbus legen

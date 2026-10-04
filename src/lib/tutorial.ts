@@ -17,9 +17,10 @@ export interface Prep {
   register?: Partial<Record<'acc' | 'ab' | 'db' | 'ins' | 'pc' | 'mc', number>>;
 }
 
-/** Gemeinsam für alle Schritte: Hervorhebung im Schaltbild */
+/** Gemeinsam für alle Schritte: Hervorhebung im Schaltbild und Bedienelemente nur für diesen Schritt */
 interface StepBase {
   fokus?: string[];
+  funktionen?: Feature[];
 }
 
 export type StepView = StepBase &
@@ -84,7 +85,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
     schritte: d.schritte.map((s): StepView => {
       switch (s.typ) {
         case 'info':
-          return { typ: 'info', titel: s.titel, html: md(s.text), prep: prep(s.vorbereitung), fokus: s.fokus };
+          return { typ: 'info', titel: s.titel, html: md(s.text), prep: prep(s.vorbereitung), fokus: s.fokus, funktionen: s.funktionen };
         case 'aktion':
           return {
             typ: 'aktion',
@@ -99,6 +100,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
             erfolg: s.erfolg ? md(s.erfolg) : undefined,
             prep: prep(s.vorbereitung),
             fokus: s.fokus,
+            funktionen: s.funktionen,
           };
         case 'quiz':
           return {
@@ -110,6 +112,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
             erklaerung: md(s.erklaerung),
             prep: prep(s.vorbereitung),
             fokus: s.fokus,
+            funktionen: s.funktionen,
           };
         case 'vorhersage':
           return {
@@ -121,6 +124,7 @@ export function toLevelView(entry: CollectionEntry<'tutorial'>, md: (s: string) 
             erklaerung: md(s.erklaerung),
             prep: prep(s.vorbereitung),
             fokus: s.fokus,
+            funktionen: s.funktionen,
           };
       }
     }),

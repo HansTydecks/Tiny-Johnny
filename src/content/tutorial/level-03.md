@@ -4,7 +4,7 @@ titel: Der Datenbus
 kurz: Lesen und Schreiben – die ersten beiden Mikrobefehle.
 leitfrage: Wie kommt eine Zahl aus dem Speicher heraus – und wieder hinein?
 sichtbar: [ram, ab, db]
-funktionen: [abInput, dbInput]
+funktionen: [abInput]
 mikro: [ram->db, db->ram]
 programm: |
   010: 7
@@ -59,7 +59,12 @@ schritte:
     loesung: ["ab = 10", "micro ram->db", "ab = 30", "micro db->ram"]
   - typ: aktion
     text: |
-      Schreibe die Zahl **99** in Zelle **012**. Lege die 99 dazu **von Hand** auf den Datenbus.
+      Schreibe die Zahl **99** in Zelle **012**.
+
+      Die 99 steht nirgends im Speicher, und rechnen kann Johnny noch nicht. Deshalb darfst du sie
+      **ausnahmsweise von Hand** auf den Datenbus legen – das Eingabefeld am Datenbus gibt es nur in diesem Schritt.
+    funktionen: [abInput, dbInput]
+    fokus: [db]
     ziel:
       ram: { "12": 99 }
       benutzt: [db->ram]

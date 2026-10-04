@@ -4,7 +4,7 @@ titel: Befehle sind Zahlen
 kurz: Opcode und Adresse – das Befehlsregister.
 leitfrage: Wie kann eine Zahl im Speicher der CPU sagen, was sie tun soll?
 sichtbar: [ram, ab, db, acc, ins, log]
-funktionen: [abInput, dbInput]
+funktionen: [abInput]
 mikro: [ram->db, db->ram, db->acc, acc->db, plus, minus, acc:=0, acc++, acc--, db->ins, ins->ab]
 programm: |
   000: TAKE 010
@@ -68,6 +68,9 @@ schritte:
       - `ins→ab` – den **Adressteil** des Befehls auf den Adressbus legen (der Pfeil vom Adressteil nach oben)
 
       Schau genau hin: Nur der Adressteil hat eine Leitung zum Adressbus. Der Opcode bleibt im Steuerwerk.
+
+      Die Adresse des **Befehls** tippst du noch selbst ein. Die Adresse der **Daten** steht im Befehl –
+      die tippst du nicht mehr ab, sondern holst sie mit `ins→ab`.
     fokus: [ins, db->ins, ins->ab]
   - typ: aktion
     text: |
@@ -79,8 +82,10 @@ schritte:
     loesung: ["ab = 0", "micro ram->db", "micro db->ins"]
   - typ: aktion
     text: |
-      Im Befehlsregister steht **TAKE 010**. Führe diesen Befehl jetzt von Hand aus.
-      Nutze `ins→ab`, damit du die Adresse nicht selbst eintippen musst.
+      Im Befehlsregister steht **TAKE 010**. Führe diesen Befehl jetzt mit Mikrobefehlen aus.
+      Das Eingabefeld am Adressbus ist dafür gesperrt – die Adresse 010 steht ja schon im Befehl: Nutze `ins→ab`.
+    funktionen: []
+    fokus: [ins->ab]
     ziel:
       acc: 7
       benutzt: [ins->ab]
@@ -100,6 +105,7 @@ schritte:
     ziel:
       ins: 4012
       ram: { "12": 10 }
+      benutzt: [db->ins, ins->ab]
     loesung: ["ab = 2", "micro ram->db", "micro db->ins", "micro ins->ab", "micro acc->db", "micro db->ram"]
   - typ: quiz
     frage: Kann man einer Speicherzelle ansehen, ob sie einen Befehl oder eine Zahl enthält?
@@ -117,5 +123,5 @@ schritte:
       - Programm und Daten liegen im **selben Speicher**.
 
       Immer noch mühsam: Du musstest wissen, welche Mikrobefehle zu TAKE, ADD und SAVE gehören,
-      und dir merken, welcher Befehl als Nächstes dran ist. Genau das automatisieren wir jetzt.
+      und die Adresse des nächsten Befehls selbst eintippen. Genau das automatisieren wir jetzt.
 ---

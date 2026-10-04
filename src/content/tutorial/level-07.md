@@ -21,6 +21,9 @@ schritte:
   - typ: info
     titel: Rezepte im Steuerwerk
     text: |
+      Die Eingabefelder an den Bussen sind verschwunden: Ab jetzt arbeitet Johnny nur noch mit dem, was im
+      Speicher und in seinen Registern steht.
+
       Für jeden Befehl ist im Steuerwerk ein festes **Rezept** hinterlegt: eine Liste von Mikrobefehlen.
       Diese Liste heißt **Mikrocode**. Alle Rezepte stehen in der Tabelle unter dem Schaltbild.
       Das Rezept, das gerade abgearbeitet wird, siehst du im Steuerwerk unter dem **Mikroprogrammzähler**.

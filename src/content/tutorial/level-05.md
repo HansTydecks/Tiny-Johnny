@@ -4,7 +4,7 @@ titel: Das Rechenwerk
 kurz: plus und minus – und du bist das Steuerwerk.
 leitfrage: Wie rechnet die CPU eigentlich?
 sichtbar: [ram, ab, db, acc, log]
-funktionen: [abInput, dbInput]
+funktionen: [abInput]
 mikro: [ram->db, db->ram, db->acc, acc->db, plus, minus, acc:=0, acc++, acc--]
 programm: |
   010: 7

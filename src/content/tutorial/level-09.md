@@ -18,7 +18,10 @@ schritte:
   - typ: info
     titel: Programme eingeben
     text: |
-      Jetzt schreibst du selbst ein Programm. So gibst du einen Befehl ein:
+      Jetzt schreibst du selbst ein Programm. Wie im echten Johnny gibst du von Hand nur noch etwas
+      **in den Speicher** ein – Befehle und Daten. Alles andere holt sich Johnny selbst.
+
+      So gibst du einen Befehl ein:
 
       1. Zelle anklicken (oder Adresse eintippen)
       2. bei **Befehl** z. B. `TAKE` wählen und die **Adresse** eintragen – oder direkt `TAKE 100` ins Feld tippen

@@ -55,44 +55,6 @@ const vorbereitung = z
   })
   .optional();
 
-/** Bauteile/Leitungen, die während des Schritts im Schaltbild hervorgehoben werden */
-const fokus = z.array(z.enum(FOCUS_IDS)).optional();
-
-const schritt = z.discriminatedUnion('typ', [
-  z.object({ typ: z.literal('info'), titel: z.string().optional(), text: z.string(), vorbereitung, fokus }),
-  z.object({
-    typ: z.literal('aktion'),
-    titel: z.string().optional(),
-    text: z.string(),
-    ziel,
-    tipp: z.string().optional(),
-    erfolg: z.string().optional(),
-    loesung: z.array(z.string()).default([]),
-    vorbereitung,
-    fokus,
-  }),
-  z.object({
-    typ: z.literal('quiz'),
-    titel: z.string().optional(),
-    frage: z.string(),
-    optionen: z.array(z.string()).min(2),
-    richtig: z.union([z.number(), z.array(z.number())]),
-    erklaerung: z.string(),
-    vorbereitung,
-    fokus,
-  }),
-  z.object({
-    typ: z.literal('vorhersage'),
-    titel: z.string().optional(),
-    frage: z.string(),
-    antwort: z.number(),
-    einheit: z.string().optional(),
-    erklaerung: z.string(),
-    vorbereitung,
-    fokus,
-  }),
-]);
-
 const simSichtbar = z.enum(['ram', 'ab', 'db', 'acc', 'ins', 'pc', 'mc', 'microcode', 'log']);
 const simFunktion = z.enum([
   'ramEdit',
@@ -109,6 +71,50 @@ const simFunktion = z.enum([
   'bonsai',
   'record',
 ]);
+
+/** Bauteile/Leitungen, die während des Schritts im Schaltbild hervorgehoben werden */
+const fokus = z.array(z.enum(FOCUS_IDS)).optional();
+/** Bedienelemente nur für diesen Schritt (ersetzt die der Mission), z. B. ein Eingabefeld genau dort, wo es gebraucht wird */
+const funktionen = z.array(simFunktion).optional();
+
+const schritt = z.discriminatedUnion('typ', [
+  z.object({ typ: z.literal('info'), titel: z.string().optional(), text: z.string(), vorbereitung, fokus, funktionen }),
+  z.object({
+    typ: z.literal('aktion'),
+    titel: z.string().optional(),
+    text: z.string(),
+    ziel,
+    tipp: z.string().optional(),
+    erfolg: z.string().optional(),
+    loesung: z.array(z.string()).default([]),
+    vorbereitung,
+    fokus,
+    funktionen,
+  }),
+  z.object({
+    typ: z.literal('quiz'),
+    titel: z.string().optional(),
+    frage: z.string(),
+    optionen: z.array(z.string()).min(2),
+    richtig: z.union([z.number(), z.array(z.number())]),
+    erklaerung: z.string(),
+    vorbereitung,
+    fokus,
+    funktionen,
+  }),
+  z.object({
+    typ: z.literal('vorhersage'),
+    titel: z.string().optional(),
+    frage: z.string(),
+    antwort: z.number(),
+    einheit: z.string().optional(),
+    erklaerung: z.string(),
+    vorbereitung,
+    fokus,
+    funktionen,
+  }),
+]);
+
 
 /** Tutorial-Missionen */
 const tutorial = defineCollection({

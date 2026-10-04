@@ -33,6 +33,30 @@ function asm(src: string | undefined, mode: Mode, j?: Johnny): number[] {
   return res.ram;
 }
 
+/**
+ * Welche Bedienmöglichkeit ein Schritt des Lösungswegs braucht – so ist sichergestellt, dass die Lernenden
+ * genau das tun können (und nur das), was der Lösungsweg vorsieht.
+ */
+function needs(action: string, mikro: string[] | 'alle'): string | null {
+  const a = action.trim().toLowerCase();
+  if (a.startsWith('micro ')) {
+    const k = action.trim().slice(6).trim();
+    return mikro === 'alle' || mikro.includes(k) ? null : `den Mikrobefehl ${k} (fehlt in „mikro“)`;
+  }
+  const map: [RegExp, string][] = [
+    [/^ram\s/, 'ramEdit'],
+    [/^ab\s*=/, 'abInput'],
+    [/^db\s*=/, 'dbInput'],
+    [/^mikroschritt$/, 'microStep'],
+    [/^makroschritt$/, 'macroStep'],
+    [/^ausfuehren$/, 'run'],
+    [/^reset$/, 'reset'],
+    [/^modus\s/, 'bonsai'],
+    [/^aufnahme\s/, 'record'],
+  ];
+  return map.find(([re]) => re.test(a))?.[1] ?? null;
+}
+
 describe('Tutorial-Missionen', () => {
   const levels = files('tutorial', '.md');
   it('gibt es in lückenloser Nummerierung', () => {
@@ -69,7 +93,12 @@ describe('Tutorial-Missionen', () => {
         used.clear();
         if (step.typ === 'aktion') {
           expect(step.loesung?.length, `${where}: Lösungsweg fehlt`).toBeGreaterThan(0);
-          for (const a of step.loesung) applyAction(j, a);
+          const allowed = new Set<string>(step.funktionen ?? d.funktionen ?? []);
+          for (const a of step.loesung) {
+            const need = needs(a, d.mikro ?? []);
+            expect(need === null || allowed.has(need), `${where}: „${a}“ braucht ${need}, erlaubt sind nur [${[...allowed]}]`).toBe(true);
+            applyAction(j, a);
+          }
           const goal: Goal = {
             ...step.ziel,
             programm: undefined,
