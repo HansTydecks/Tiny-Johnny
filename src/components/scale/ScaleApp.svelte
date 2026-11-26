@@ -7,6 +7,7 @@
   import type { HudState } from '../../lib/scale/engine';
   import { formatLength, formatFactor, type Lang } from '../../lib/scale/zoom';
   import { PATH_BUTTONS, UI } from '../../lib/scale/ui';
+  import { PARTS } from '../../lib/scale/parts';
 
   let canvas: HTMLCanvasElement;
   let stage: HTMLDivElement;
@@ -33,6 +34,7 @@
         if (disposed) return;
         engine = new ScaleEngine(canvas, LEVELS);
         engine.setLang(lang);
+        engine.partZoom = (id) => PARTS[id]?.zoomTo;
         engine.onState = (s) => {
           hud = s;
           loading = false;
@@ -140,12 +142,26 @@
               class:on={hud.auto === p.leaf}
               style="--c: {p.color}"
               onclick={() => (hud?.auto === p.leaf ? engine?.reset() : engine?.dive(p.leaf))}
-              title={p.title[lang]}>{p.label}</button
+              title={p.title[lang]}>{p.label[lang]}</button
             >
           {/each}
         </div>
       </div>
     </div>
+
+    {#if hud.hover && PARTS[hud.hover.id]}
+      {@const part = PARTS[hud.hover.id]}
+      <div
+        class="hovercard card"
+        class:flip={hud.hover.x > stage.clientWidth - 300}
+        style="transform: translate({hud.hover.x}px, {hud.hover.y}px)"
+        aria-hidden="true"
+      >
+        <b>{part.name[lang]}</b>
+        <span>{part.info[lang]}</span>
+        {#if part.zoomTo}<em>{tr('hoverZoom')}</em>{/if}
+      </div>
+    {/if}
 
     {#if hud.hint}
       <div class="hint">
@@ -461,6 +477,40 @@
     color: #0b0d18;
   }
 
+  .hovercard {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 260px;
+    margin: 18px 0 0 16px;
+    padding: 9px 12px 10px;
+    display: grid;
+    gap: 3px;
+    pointer-events: none;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #cfd6e6;
+    z-index: 5;
+    animation: hc 0.18s ease;
+  }
+  .hovercard.flip {
+    margin-left: -276px;
+  }
+  .hovercard b {
+    color: #fff;
+    font-size: 0.88rem;
+  }
+  .hovercard em {
+    font-style: normal;
+    font-weight: 700;
+    color: #9fd6ff;
+    font-size: 0.78rem;
+  }
+  @keyframes hc {
+    from {
+      opacity: 0;
+    }
+  }
   .hint {
     position: absolute;
     left: 50%;

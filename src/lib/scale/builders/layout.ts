@@ -24,6 +24,9 @@ export const GPU = { x0: -121, x1: 146, y0: 3, y1: 114, pcbT: 1.6, coolerZ: 52, 
 export const GPU_PCB_FRONT = PCIE1_Z + GPU.pcbT / 2;
 export const GPU_DIE_FACE = GPU_PCB_FRONT + 0.25 + GPU.subT + 0.06 + GPU.dieT;
 
+export const PCH = { x: 88, z: 72, sub: 25, subT: 1.0, dieW: 9, dieD: 7.5, dieT: 0.5 };
+export const PCH_DIE_TOP = PCH.subT + 0.08 + PCH.dieT;
+
 export const HDD = { x: 218, z: -6, w: 101.6, d: 147, h: 26.1, floor: 3, platterY: 19.5, platterR: 47.5 };
 /** Platte und Arm im Laufwerk (lokale Koordinaten, relativ zur HDD-Mitte) */
 export const HDD_SPINDLE = { x: 0, z: -24 };
@@ -55,6 +58,7 @@ export const ANCHORS = {
   ramDie: [DIMM.slotsX[1] - DIMM.t / 2 - RAM_CHIP.t, RAM_CHIP.y, DIMM.z + RAM_CHIP_Z[3]] as Vec3,
   ssdPkg: [SSD_NAND.x, M2.y + M2.t + SSD_NAND.t, M2.z] as Vec3,
   gpuDie: [GPU.dieX, GPU.dieY, GPU_DIE_FACE] as Vec3,
+  pchDie: [PCH.x, PCH_DIE_TOP, PCH.z] as Vec3,
   hddHead: (() => {
     const [hx, hz] = hddHeadAt(HDD_ARM_ANGLE);
     return [HDD.x + hx, HDD.platterY, HDD.z + hz] as Vec3;

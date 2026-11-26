@@ -93,10 +93,10 @@ export const MAT = {
   /** Silizium: spiegelnd grau mit Interferenzfarben wie bei echten Wafern */
   silicon: (o: PhysParams = {}) =>
     phys({
-      color: 0x5d636d,
+      color: 0x4c525b,
       metalness: 0.7,
-      roughness: 0.3,
-      envMapIntensity: 0.35,
+      roughness: 0.42,
+      envMapIntensity: 0.3,
       iridescence: 0.55,
       iridescenceIOR: 1.6,
       iridescenceThicknessMinimum: 200,

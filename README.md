@@ -12,7 +12,7 @@ Leitfrage: *Woher weiß der Computer eigentlich, was er tun soll?*
 | **Tutorial** | 14 Missionen, in denen Johnny Bauteil für Bauteil aufgebaut wird – mit Leitfragen, Vorhersagen und automatisch geprüften Zielen |
 | **Aufgaben** | 20 Aufgaben (Rechnen & Mathe, Spiele & Zähler, Informatik-Klassiker) mit Testfällen, gestuften Tipps und Musterlösung |
 | **Sandbox** | Johnny mit allen Funktionen: Mikro-/Makroschritt, Ausführen, eigene Befehle aufnehmen, Bonsai-Modus, .ram/.mc-Dateien |
-| **Scale of Things** | 3D-Zoom (three.js) vom Mainboard bis zu einzelnen Atomen – durch CPU, RAM, SSD, Festplatte und Grafikkarte, mit Ameise, Haar, Bakterium, Virus und DNA als Größenvergleich (Deutsch/Englisch) |
+| **Scale of Things** | 3D-Zoom (three.js) vom Mainboard bis zu einzelnen Atomen – durch CPU, RAM, SSD, Festplatte, Grafikkarte und Chipsatz, mit Erklärtext zu jedem Bauteil, mit Ameise, Haar, Bakterium, Virus und DNA als Größenvergleich (Deutsch/Englisch) |
 
 Der Simulator verhält sich **exakt wie Johnny 2.0** (gleicher Mikrocode, gleiche Grenzen, gleiche Dateiformate).
 Das wird bei jeder Änderung automatisch getestet.

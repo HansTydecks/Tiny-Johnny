@@ -168,7 +168,30 @@ function makeNandDie(): Die {
   return { w: W, h: H, blocks: bl, base: '#1d2a2a' };
 }
 
+/** Chipsatz (PCH): Rand voller Schnittstellen (PCIe, USB, SATA, Netzwerk, Audio), innen Steuerlogik und Puffer. */
+function makePchDie(): Die {
+  seedC = 1200;
+  const W = 9;
+  const H = 7.5;
+  const bl: Block[] = [];
+  bl.push(B(0, 0, W, H, 'seal', 220));
+  bl.push(B(0.35, 0.35, 1.0, H - 0.7, 'phy', 140, { name: 'pcie' }));
+  for (let i = 0; i < 10; i++) bl.push(B(1.5 + i * 0.71, 0.35, 0.66, 0.75, 'phy', 160 + (i % 2) * 8, { name: 'usbphy' }));
+  bl.push(B(1.5, H - 1.1, 2.95, 0.75, 'phy', 128, { name: 'sata' }));
+  bl.push(B(4.55, H - 1.1, 1.95, 0.75, 'analog', 100, { name: 'lan' }));
+  bl.push(B(6.6, H - 1.1, 2.05, 0.75, 'analog', 80, { name: 'audio' }));
+  bl.push(B(W - 1.1, 1.25, 0.75, H - 2.5, 'phy', 140, { name: 'dmi' }));
+  bl.push(B(1.5, 1.25, 2.8, 2.45, 'logic', 36, { name: 'usb' }));
+  bl.push(B(4.4, 1.25, 3.35, 1.75, 'logic', 50, { name: 'sactl' }));
+  bl.push(B(4.4, 3.1, 1.6, 1.6, 'logic', 22, { name: 'me' }));
+  bl.push(B(6.1, 3.1, 1.65, 1.6, 'sram', 262, { name: 'mesram' }));
+  bl.push(B(1.5, 3.8, 2.8, 2.45, 'sram', 240, { name: 'buf' }));
+  bl.push(B(4.4, 4.8, 3.35, 1.45, 'logic', 42, { name: 'periph' }));
+  return { w: W, h: H, blocks: bl, base: '#262236' };
+}
+
 export const CPU_DIE = makeCpuDie();
+export const PCH_DIE = makePchDie();
 export const GPU_DIE = makeGpuDie();
 export const DRAM_DIE = makeDramDie();
 export const NAND_DIE = makeNandDie();

@@ -51,6 +51,8 @@ export interface HudState {
   labels: HudLabel[];
   auto: string | null;
   hint: boolean;
+  /** Bauteil unter dem Mauszeiger (Infokarte) */
+  hover: { id: string; x: number; y: number } | null;
 }
 
 interface Mat {
@@ -107,6 +109,16 @@ export class ScaleEngine {
   private cand: Level | null = null;
   private candW = 0;
   private zoomPoint: THREE.Vector3 | null = null;
+  /** Bauteil, auf das gezoomt wird: zieht unabhängig vom Abstand zu seinem Chip */
+  private intent: Level | null = null;
+  /** Mauszeiger zeigte auf die nackte Platine → Platinen-Zoom erlaubt */
+  private pcbIntent = false;
+  private hoverId: string | null = null;
+  private hoverObj: THREE.Object3D | null = null;
+  private hoverT = 0;
+  private hoverSticky = 0;
+  private brackets: THREE.LineSegments | null = null;
+  private tapStart: { x: number; y: number; t: number } | null = null;
   private pointer = { x: 0, y: 0, inside: false };
   private lastUser = -1e9;
   private lastDrag = -1e9;
@@ -299,7 +311,10 @@ export class ScaleEngine {
         this.userAct();
         const r = c.getBoundingClientRect();
         this.pointer = { x: e.clientX - r.left, y: e.clientY - r.top, inside: true };
-        if (e.deltaY < 0 || !this.zoomPoint) this.zoomPoint = this.pickWorld(this.pointer.x, this.pointer.y);
+        if (e.deltaY < 0 || !this.zoomPoint) {
+          this.zoomPoint = this.pickWorld(this.pointer.x, this.pointer.y);
+          if (e.deltaY < 0) this.aimAt(this.pointer.x, this.pointer.y);
+        }
         const dens = this.densityNow();
         this.zVel += wheelImpulse(e.deltaY, e.deltaMode, this.zVel) * (0.55 + 0.45 * dens);
         this.zVel = clamp(this.zVel, -3.2, 3.2);
@@ -309,6 +324,7 @@ export class ScaleEngine {
     this.on(c, 'pointerdown', (e: PointerEvent) => {
       c.setPointerCapture(e.pointerId);
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, button: e.button });
+      this.tapStart = { x: e.clientX, y: e.clientY, t: this.t };
       this.userAct();
       this.lastDrag = this.t;
       if (this.pointers.size === 2) {
@@ -316,9 +332,18 @@ export class ScaleEngine {
         this.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
         const r = c.getBoundingClientRect();
         this.zoomPoint = this.pickWorld(this.pinch.cx - r.left, this.pinch.cy - r.top);
+        this.aimAt(this.pinch.cx - r.left, this.pinch.cy - r.top);
       }
     });
     const up = (e: PointerEvent) => {
+      // kurzes Antippen (Touch) zeigt die Infokarte
+      if (this.tapStart && e.pointerType !== 'mouse' && this.t - this.tapStart.t < 0.35) {
+        const r = c.getBoundingClientRect();
+        this.pointer = { x: e.clientX - r.left, y: e.clientY - r.top, inside: true };
+        this.hoverT = -1;
+        this.hoverSticky = this.t + 4;
+      }
+      this.tapStart = null;
       this.pointers.delete(e.pointerId);
       if (this.pointers.size < 2) this.pinch = null;
     };
@@ -329,6 +354,7 @@ export class ScaleEngine {
       this.pointer = { x: e.clientX - r.left, y: e.clientY - r.top, inside: true };
       const p = this.pointers.get(e.pointerId);
       if (!p) return;
+      if (this.tapStart && Math.hypot(e.clientX - this.tapStart.x, e.clientY - this.tapStart.y) > 6) this.tapStart = null;
       const dx = e.clientX - p.x;
       const dy = e.clientY - p.y;
       p.x = e.clientX;
@@ -353,6 +379,9 @@ export class ScaleEngine {
       }
     });
     this.on(c, 'contextmenu', (e: Event) => e.preventDefault());
+    this.on(c, 'pointerleave', () => {
+      this.pointer.inside = false;
+    });
     this.on(window, 'keydown', (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -385,12 +414,45 @@ export class ScaleEngine {
   }
 
   private pan(dx: number, dy: number) {
+    this.intent = null;
     const W = Math.pow(10, this.z);
     const k = W / Math.min(this.w, this.h);
     const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camQ);
     const upv = new THREE.Vector3(0, 1, 0).applyQuaternion(this.camQ);
     this.target.addScaledVector(right, -dx * k).addScaledVector(upv, dy * k);
   }
+
+  /** Welches Bauteil der Platine liegt unter dem Punkt? (nur solange die Platine zu sehen ist) */
+  private pickPart(px: number, py: number): { id: string; obj: THREE.Object3D } | null {
+    if (!this.root.built?.pick || this.root.alpha < 0.5) return null;
+    const ndc = new THREE.Vector2((px / this.w) * 2 - 1, -(py / this.h) * 2 + 1);
+    this.raycaster.setFromCamera(ndc, this.camera);
+    const hits = this.raycaster.intersectObjects(this.root.built.pick, true);
+    for (const h of hits) {
+      let o: THREE.Object3D | null = h.object;
+      while (o && !o.userData.part) o = o.parent;
+      if (o && (o as THREE.Mesh).visible !== false) return { id: o.userData.part as string, obj: o };
+    }
+    return null;
+  }
+
+  /** Beim Hineinzoomen: Zielt der Zeiger auf ein zoombares Bauteil oder auf die nackte Platine? */
+  private aimAt(px: number, py: number) {
+    if (this.chain.length > 1 && this.chain[1].def.dynamic === undefined) return; // schon in einem Bauteil
+    const hit = this.pickPart(px, py);
+    if (!hit) return;
+    const zoomTo = this.partZoom?.(hit.id);
+    if (zoomTo) {
+      this.intent = this.levels.get(zoomTo) ?? null;
+      this.pcbIntent = false;
+    } else {
+      this.intent = null;
+      this.pcbIntent = hit.id === 'pcb';
+    }
+  }
+
+  /** Wird von außen gesetzt: Bauteil-ID → Ziel-Ebene */
+  partZoom: ((id: string) => string | undefined) | null = null;
 
   /** Welt-Punkt unter dem Mauszeiger (zuerst echte Geometrie, sonst die Ebene durch das Blickziel). */
   private pickWorld(px: number, py: number): THREE.Vector3 {
@@ -435,6 +497,7 @@ export class ScaleEngine {
       l = l.parent;
     }
     this.auto = { kind: 'dive', path };
+    this.intent = null;
     this.zVel = 0;
     this.touched = true;
   }
@@ -540,10 +603,10 @@ export class ScaleEngine {
     for (;;) {
       const cur = chain[chain.length - 1];
       // dynamischen Anker (Platine überall) setzen, wenn kein anderes Kind in Reichweite ist
-      const anyStatic = cur.children.some((c) => !c.def.dynamic && this.dist2(c) < c.def.pullR);
+      const blocked = !this.pcbIntent || (this.intent && this.intent.parent === cur);
       for (const c of cur.children) {
         if (!c.def.dynamic || prev.has(c)) continue;
-        if (anyStatic || this.z > c.def.zIn + 0.6) {
+        if (blocked || this.z > c.def.zIn + 0.6) {
           if (c.dynReady && this.z > c.def.zIn + 0.8) c.dynReady = false;
           continue;
         }
@@ -584,13 +647,19 @@ export class ScaleEngine {
       if (!c.dynReady) continue;
       const d = this.dist2(c);
       const r = c === only ? 0 : d / c.def.pullR;
-      if ((r < 1 && r < cd) || c === autoNext) {
+      const aimed = c === autoNext || (!autoNext && c === this.intent);
+      if ((r < 1 && r < cd && !(this.intent && this.intent.parent === deep)) || aimed) {
         cand = c;
-        cd = c === autoNext ? -1 : r;
+        cd = aimed ? -1 : r;
       }
     }
     this.cand = cand;
-    this.candW = cand ? smoothstep(cand.def.zIn + 0.95, cand.def.zIn - 0.02, this.z) * (autoNext === cand ? 1 : smoothstep(1, 0.6, cd)) : 0;
+    this.candW = cand ? smoothstep(cand.def.zIn + 0.95, cand.def.zIn - 0.02, this.z) * (cd < 0 ? 1 : smoothstep(1, 0.6, cd)) : 0;
+    // Absicht vergessen, wenn weit herausgezoomt wurde oder sie erreicht ist
+    if (this.intent && (this.z > this.intent.def.zIn + 1.6 || chain.includes(this.intent))) {
+      if (!chain.includes(this.intent) || this.z > this.intent.def.zIn + 0.3) this.intent = null;
+    }
+    if (this.pcbIntent && this.z > -0.9) this.pcbIntent = false;
   }
 
   private frame(dt: number, silent = false) {
@@ -744,6 +813,7 @@ export class ScaleEngine {
       if (l.built && l !== this.root && !this.chain.includes(l) && l !== this.cand && this.t - l.lastUsed > 12) this.disposeLevel(l);
     }
 
+    if (!silent) this.updateHover();
     this.adaptQuality(dt);
     if (!silent) this.emit(rendered);
   }
@@ -784,6 +854,64 @@ export class ScaleEngine {
       return;
     }
     this.zVel = damp(this.zVel, goalVel, 2.5, dt);
+  }
+
+  private updateHover() {
+    const sticky = this.t < this.hoverSticky;
+    const dragging = this.pointers.size > 0;
+    const allowed = this.chain.length === 1 || (this.chain[1]?.def.dynamic !== undefined && this.z > -1.9);
+    if (!allowed || (!this.pointer.inside && !sticky) || (dragging && !sticky)) {
+      this.setHover(null);
+      return;
+    }
+    if (this.hoverT >= 0 && this.t - this.hoverT < 0.1) return;
+    this.hoverT = this.t;
+    const hit = this.pickPart(this.pointer.x, this.pointer.y);
+    this.setHover(hit);
+  }
+
+  private setHover(hit: { id: string; obj: THREE.Object3D } | null) {
+    const id = hit && hit.id !== 'pcb' ? hit.id : null;
+    if (id === this.hoverId && hit?.obj === this.hoverObj) {
+      if (this.brackets) (this.brackets.material as THREE.LineBasicMaterial).opacity = 0.55 + 0.35 * Math.sin(this.t * 5);
+      return;
+    }
+    this.hoverId = id;
+    this.hoverObj = id ? hit!.obj : null;
+    if (this.brackets) {
+      this.brackets.parent?.remove(this.brackets);
+      this.brackets.geometry.dispose();
+      (this.brackets.material as THREE.Material).dispose();
+      this.brackets = null;
+    }
+    if (!id || !this.root.holder) return;
+    const holder = this.root.holder;
+    holder.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(hit!.obj).applyMatrix4(holder.matrixWorld.clone().invert());
+    if (box.isEmpty()) return;
+    const pad = box.getSize(new THREE.Vector3()).multiplyScalar(0.06).addScalar(0.6);
+    box.min.sub(pad);
+    box.max.add(pad);
+    const pts: number[] = [];
+    const c = [box.min, box.max];
+    const size = box.getSize(new THREE.Vector3());
+    for (let i = 0; i < 8; i++) {
+      const x = c[i & 1].x;
+      const y = c[(i >> 1) & 1].y;
+      const z = c[(i >> 2) & 1].z;
+      const sx = i & 1 ? -1 : 1;
+      const sy = (i >> 1) & 1 ? -1 : 1;
+      const sz = (i >> 2) & 1 ? -1 : 1;
+      const k = 0.22;
+      pts.push(x, y, z, x + sx * size.x * k, y, z, x, y, z, x, y + sy * size.y * k, z, x, y, z, x, y, z + sz * size.z * k);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const mat = new THREE.LineBasicMaterial({ color: 0x9fd6ff, transparent: true, opacity: 0.8, depthTest: false, blending: THREE.AdditiveBlending });
+    this.brackets = new THREE.LineSegments(geo, mat);
+    this.brackets.renderOrder = 999;
+    this.brackets.frustumCulled = false;
+    holder.children[0].add(this.brackets);
   }
 
   private quality = 1;
@@ -863,6 +991,7 @@ export class ScaleEngine {
       labels,
       auto: this.auto?.kind === 'dive' ? this.auto.path[this.auto.path.length - 1] : null,
       hint: !this.touched,
+      hover: this.hoverId ? { id: this.hoverId, x: this.pointer.x, y: this.pointer.y } : null,
     });
   }
 

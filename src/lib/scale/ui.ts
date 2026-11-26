@@ -15,12 +15,14 @@ export const UI = {
   hintScroll: t('Scrollen: zoomen', 'Scroll: zoom'),
   hintDrag: t('Ziehen: drehen', 'Drag: rotate'),
   hintPan: t('Shift/Rechtsklick: verschieben', 'Shift/right-drag: pan'),
+  hoverZoom: t('↓ Scrollen zum Hineinzoomen', '↓ Scroll to zoom in'),
 } satisfies Record<string, I18n>;
 
-export const PATH_BUTTONS: { leaf: string; label: string; color: string; title: I18n }[] = [
-  { leaf: 'cpu.atoms', label: 'CPU', color: '#8b87ff', title: t('Vom Prozessor bis zu den Silizium-Atomen', 'From the processor down to silicon atoms') },
-  { leaf: 'ram.atoms', label: 'RAM', color: '#6ea8ff', title: t('Vom Arbeitsspeicher bis in einen Kondensator', 'From the RAM stick into a capacitor') },
-  { leaf: 'ssd.atoms', label: 'SSD', color: '#34d399', title: t('Von der SSD bis zu gefangenen Elektronen', 'From the SSD down to trapped electrons') },
-  { leaf: 'hdd.atoms', label: 'HDD', color: '#f5a524', title: t('Von der Festplatte bis zu magnetischen Atomen', 'From the hard disk down to magnetic atoms') },
-  { leaf: 'gpu.atoms', label: 'GPU', color: '#ff7ab6', title: t('Von der Grafikkarte bis zur Speicherzelle', 'From the graphics card down to a memory cell') },
+export const PATH_BUTTONS: { leaf: string; label: I18n; color: string; title: I18n }[] = [
+  { leaf: 'cpu.atoms', label: t('CPU'), color: '#8b87ff', title: t('Vom Prozessor bis zu den Silizium-Atomen', 'From the processor down to silicon atoms') },
+  { leaf: 'ram.atoms', label: t('RAM'), color: '#6ea8ff', title: t('Vom Arbeitsspeicher bis in einen Kondensator', 'From the RAM stick into a capacitor') },
+  { leaf: 'ssd.atoms', label: t('SSD'), color: '#34d399', title: t('Von der SSD bis zu gefangenen Elektronen', 'From the SSD down to trapped electrons') },
+  { leaf: 'hdd.atoms', label: t('HDD'), color: '#f5a524', title: t('Von der Festplatte bis zu magnetischen Atomen', 'From the hard disk down to magnetic atoms') },
+  { leaf: 'pch.atoms', label: t('Chipsatz', 'Chipset'), color: '#f07167', title: t('Vom Chipsatz bis zu den Atomen', 'From the chipset down to the atoms') },
+  { leaf: 'gpu.atoms', label: t('GPU'), color: '#ff7ab6', title: t('Von der Grafikkarte bis zur Speicherzelle', 'From the graphics card down to a memory cell') },
 ];

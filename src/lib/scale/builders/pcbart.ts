@@ -1,13 +1,15 @@
 /**
  * Leiterbahnen, Durchkontaktierungen und Bestückungsdruck der Platine als Vektordaten.
- * Dieselben Daten werden für die ganze Platine (grob) und für jeden Zoom-Ausschnitt (fein) gezeichnet –
- * dadurch passen alle Stufen beim Hineinzoomen exakt aufeinander.
+ * Geführt wie auf echten Platinen: Busse mit 45°-Ecken, Speicherleitungen in Byte-Gruppen mit Längenausgleich
+ * (Mäander), Differenzpaare für PCIe/USB/SATA, Fan-out unter Chips, Stitching-Vias am Rand.
+ * Dieselben Daten werden für die ganze Platine (grob) und für jeden Zoom-Ausschnitt (fein) gezeichnet.
  */
-import { BOARD, CPU, DIMM, M2, PCIE1_Z } from './layout';
+import { BOARD, CPU, DIMM, M2, PCIE1_Z, PCH } from './layout';
 import { rng } from './kit';
 
+type P = [number, number];
 export interface Trace {
-  pts: [number, number][];
+  pts: P[];
   w: number;
 }
 export interface Silk {
@@ -24,127 +26,248 @@ export interface Silk {
 }
 
 export const TRACES: Trace[] = [];
+/** [x, z, Restring-Radius] */
 export const VIAS: [number, number, number][] = [];
-export const POURS: [number, number][][] = [];
+export const POURS: P[][] = [];
+/** vergoldete Testpunkte [x, z, r] */
+export const TESTPTS: [number, number, number][] = [];
+/** Vias in Kupferflächen mit Wärmefalle */
+export const RELIEFS: [number, number][] = [];
 export const SILK: Silk[] = [];
 
 const HW = BOARD.w / 2;
 const HD = BOARD.d / 2;
+const sgn = (x: number) => (x < 0 ? -1 : 1);
 
-function route(r: ReturnType<typeof rng>, x: number, z: number, steps: number, w: number, bias: [number, number]) {
-  const pts: [number, number][] = [[x, z]];
-  let dir = r.int(0, 7);
-  for (let i = 0; i < steps; i++) {
-    if (r.chance(0.35)) dir = (dir + (r.chance(0.5) ? 1 : 7)) % 8;
-    // Richtung leicht zum Ziel lenken
-    const ang = (dir * Math.PI) / 4;
-    let dx = Math.cos(ang);
-    let dz = Math.sin(ang);
-    if (bias[0] * dx + bias[1] * dz < -0.3) {
-      dir = (dir + 4) % 8;
-      dx = -dx;
-      dz = -dz;
-    }
-    const len = r.range(4, 16);
-    x = Math.max(-HW + 3, Math.min(HW - 3, x + dx * len));
-    z = Math.max(-HD + 3, Math.min(HD - 3, z + dz * len));
-    pts.push([x, z]);
+/** Weg von a nach b: gerade Strecke (h = waagrecht, v = senkrecht) plus 45°-Stück. */
+function bend(a: P, b: P, first: 'h' | 'v' = 'h'): P[] {
+  const dx = b[0] - a[0];
+  const dz = b[1] - a[1];
+  const ax = Math.abs(dx);
+  const az = Math.abs(dz);
+  if (ax < 1e-6 || az < 1e-6 || Math.abs(ax - az) < 1e-6) return [a, b];
+  if (first === 'h') {
+    // waagrecht, dann schräg – oder schräg, dann senkrecht
+    return ax > az ? [a, [b[0] - sgn(dx) * az, a[1]], b] : [a, [b[0], a[1] + sgn(dz) * ax], b];
   }
-  TRACES.push({ pts, w });
-  VIAS.push([pts[0][0], pts[0][1], 0.35], [x, z, 0.35]);
+  return az > ax ? [a, [a[0], b[1] - sgn(dz) * ax], b] : [a, [a[0] + sgn(dx) * az, b[1]], b];
 }
 
-/** Bündel paralleler Leitungen mit Mäandern (Längenausgleich wie bei echten Speicherleitungen). */
-function bundle(x0: number, z0: number, x1: number, z1: number, n: number, pitch: number, w: number, meander: boolean, dirZ = false) {
+/** Mehrere Wegpunkte zu einer Linie mit 45°-Ecken verbinden. */
+function path(points: P[], first: 'h' | 'v' = 'h'): P[] {
+  const out: P[] = [points[0]];
+  for (let i = 1; i < points.length; i++) {
+    const seg = bend(points[i - 1], points[i], first);
+    out.push(...seg.slice(1));
+  }
+  return dedupe(out);
+}
+function dedupe(pts: P[]): P[] {
+  return pts.filter((p, i) => i === 0 || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 1e-6);
+}
+
+/** Linie seitlich versetzen (mit Gehrung an den Ecken) – so bleiben parallele Leitungen parallel. */
+function offset(pts: P[], d: number): P[] {
+  const n = pts.length;
+  const out: P[] = [];
+  const norm = (a: P, b: P): P => {
+    const dx = b[0] - a[0];
+    const dz = b[1] - a[1];
+    const l = Math.hypot(dx, dz) || 1;
+    return [-dz / l, dx / l];
+  };
   for (let i = 0; i < n; i++) {
-    const o = (i - (n - 1) / 2) * pitch;
-    const pts: [number, number][] = [];
-    if (!dirZ) {
-      const za = z0 + o;
-      const zb = z1 + o;
-      const xm = (x0 + x1) / 2 + (i % 2 ? 1 : -1) * 0.3;
-      pts.push([x0, za], [xm - Math.abs(zb - za) / 2, za]);
-      if (meander && i % 3 === 0) {
-        const mx = xm - Math.abs(zb - za) / 2 + 0.6;
-        for (let k = 0; k < 4; k++) {
-          const px = mx + k * 1.2;
-          pts.push([px, za], [px, za + pitch * 0.42], [px + 0.6, za + pitch * 0.42], [px + 0.6, za]);
-        }
-      }
-      pts.push([xm + Math.abs(zb - za) / 2, zb], [x1, zb]);
-    } else {
-      const xa = x0 + o;
-      const xb = x1 + o;
-      const zm = (z0 + z1) / 2;
-      pts.push([xa, z0], [xa, zm - Math.abs(xb - xa) / 2]);
-      if (meander && i % 3 === 1) {
-        const mz = zm - Math.abs(xb - xa) / 2 + 0.6;
-        for (let k = 0; k < 3; k++) {
-          const pz = mz + k * 1.2;
-          pts.push([xa, pz], [xa + pitch * 0.42, pz], [xa + pitch * 0.42, pz + 0.6], [xa, pz + 0.6]);
-        }
-      }
-      pts.push([xb, zm + Math.abs(xb - xa) / 2], [xb, z1]);
+    const n0 = i > 0 ? norm(pts[i - 1], pts[i]) : norm(pts[0], pts[1]);
+    const n1 = i < n - 1 ? norm(pts[i], pts[i + 1]) : n0;
+    let mx = n0[0] + n1[0];
+    let mz = n0[1] + n1[1];
+    const ml = Math.hypot(mx, mz) || 1;
+    mx /= ml;
+    mz /= ml;
+    const cos = mx * n1[0] + mz * n1[1];
+    const k = d / Math.max(0.5, cos);
+    out.push([pts[i][0] + mx * k, pts[i][1] + mz * k]);
+  }
+  return out;
+}
+
+/** Mäander (Längenausgleich) auf dem längsten geraden Abschnitt einfügen. */
+function meander(pts: P[], amp: number, pitch: number, count: number): P[] {
+  let best = -1;
+  let bl = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const l = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+    const axis = Math.abs(pts[i + 1][0] - pts[i][0]) < 1e-6 || Math.abs(pts[i + 1][1] - pts[i][1]) < 1e-6;
+    if (axis && l > bl) {
+      bl = l;
+      best = i;
     }
-    TRACES.push({ pts, w });
-    VIAS.push([pts[pts.length - 1][0], pts[pts.length - 1][1], 0.3]);
+  }
+  if (best < 0 || bl < pitch * (count + 2)) return pts;
+  const a = pts[best];
+  const b = pts[best + 1];
+  const ux = (b[0] - a[0]) / bl;
+  const uz = (b[1] - a[1]) / bl;
+  const nx = -uz;
+  const nz = ux;
+  const start = (bl - pitch * count) / 2;
+  const mid: P[] = [];
+  for (let k = 0; k < count; k++) {
+    const s0 = start + k * pitch;
+    const s1 = s0 + pitch / 2;
+    const p0: P = [a[0] + ux * s0, a[1] + uz * s0];
+    const p1: P = [a[0] + ux * s1, a[1] + uz * s1];
+    mid.push(p0, [p0[0] + nx * amp, p0[1] + nz * amp], [p1[0] + nx * amp, p1[1] + nz * amp], p1);
+  }
+  return [...pts.slice(0, best + 1), ...mid, ...pts.slice(best + 1)];
+}
+
+/**
+ * Bus: n Leitungen entlang einer Mittellinie. `groups` teilt in Gruppen (z. B. Byte-Gruppen) mit größerem Abstand;
+ * `pairs` führt jeweils zwei Leitungen eng als Differenzpaar.
+ */
+function bus(center: P[], o: { n: number; pitch: number; w: number; groups?: number; gap?: number; pairs?: boolean; meander?: boolean; viaEnds?: boolean }) {
+  const offs: number[] = [];
+  let cur = 0;
+  for (let i = 0; i < o.n; i++) {
+    offs.push(cur);
+    const endGroup = o.groups && (i + 1) % o.groups === 0;
+    cur += o.pairs ? (i % 2 === 0 ? o.w * 2.2 : o.pitch) : endGroup ? (o.gap ?? o.pitch * 3) : o.pitch;
+  }
+  const mid = (offs[0] + offs[offs.length - 1]) / 2;
+  offs.forEach((d, i) => {
+    let pts = offset(center, d - mid);
+    if (o.meander && o.groups && (i + 1) % o.groups === 0 && i < o.n - 1) pts = meander(pts, ((o.gap ?? 1) - o.w) * 0.55, o.pitch * 3.2, 5);
+    TRACES.push({ pts, w: o.w });
+    if (o.viaEnds !== false) {
+      VIAS.push([pts[0][0], pts[0][1], o.w * 1.6 + 0.12]);
+      VIAS.push([pts[pts.length - 1][0], pts[pts.length - 1][1], o.w * 1.6 + 0.12]);
+    }
+  });
+}
+
+/** Fan-out um einen Chip: Pad → kurze Leitung nach außen → 45° → Via. */
+function fanout(cx: number, cz: number, w: number, d: number, pitch: number, len = 1.1) {
+  const sides: { o: P; along: P; out: P; L: number }[] = [
+    { o: [cx - w / 2, cz - d / 2], along: [1, 0], out: [0, -1], L: w },
+    { o: [cx - w / 2, cz + d / 2], along: [1, 0], out: [0, 1], L: w },
+    { o: [cx - w / 2, cz - d / 2], along: [0, 1], out: [-1, 0], L: d },
+    { o: [cx + w / 2, cz - d / 2], along: [0, 1], out: [1, 0], L: d },
+  ];
+  for (const sd of sides) {
+    let k = 0;
+    for (let s = pitch; s < sd.L - pitch / 2; s += pitch, k++) {
+      const p: P = [sd.o[0] + sd.along[0] * s, sd.o[1] + sd.along[1] * s];
+      const q: P = [p[0] + sd.out[0] * len * 0.5, p[1] + sd.out[1] * len * 0.5];
+      const side = k % 2 ? 1 : -1;
+      const v: P = [q[0] + (sd.out[0] + sd.along[0] * side) * len * 0.5, q[1] + (sd.out[1] + sd.along[1] * side) * len * 0.5];
+      TRACES.push({ pts: [p, q, v], w: 0.12 });
+      VIAS.push([v[0], v[1], 0.28]);
+    }
   }
 }
 
 (function generate() {
   const r = rng(1702);
-  const sockR = CPU.x + CPU.pkgW / 2 + 9;
-  // CPU → RAM (zwei Kanäle)
-  bundle(sockR, -98, DIMM.slotsX[0] - 4, -100, 22, 0.55, 0.11, true);
-  bundle(sockR, -40, DIMM.slotsX[0] - 4, -30, 22, 0.55, 0.11, true);
-  // CPU → PCIe x16 (Differenzpaare, senkrecht)
-  bundle(CPU.x - 12, CPU.z + CPU.pkgD / 2 + 8, -70, PCIE1_Z - 4, 16, 0.5, 0.1, true, true);
-  // CPU → M.2
-  bundle(CPU.x + 8, CPU.z + CPU.pkgD / 2 + 8, M2.x0 + M2.len - 6, M2.z - M2.w / 2 - 2, 8, 0.5, 0.1, false, true);
-  // Chipsatz → SATA, untere Steckplätze, Audio
-  bundle(70, 92, 108, 126, 14, 0.6, 0.12, true);
-  bundle(40, 60, 70, 88, 12, 0.6, 0.12, false, true);
-  bundle(-30, 110, 40, 100, 10, 0.6, 0.12, false);
-  // freie Signalleitungen überall
-  for (let i = 0; i < 140; i++) {
-    const x = r.range(-HW + 8, HW - 8);
-    const z = r.range(-HD + 8, HD - 8);
-    route(r, x, z, r.int(3, 9), r.pick([0.12, 0.15, 0.2, 0.25]), [r.range(-1, 1), r.range(-1, 1)]);
-  }
-  // breite Stromleitungen bei den Spannungswandlern
-  for (let i = 0; i < 6; i++) TRACES.push({ pts: [[-104, -128 + i * 16], [-84, -128 + i * 16], [-78, -122 + i * 16]], w: 2.2 });
-  // Kupferflächen
-  POURS.push(
-    [[-120, -150], [-50, -150], [-50, -120], [-88, -120], [-88, -10], [-120, -10]],
-    [[60, 40], [118, 40], [118, 70], [60, 70]],
-    [[-120, 90], [-60, 90], [-60, 150], [-120, 150]],
-  );
-  // Durchkontaktierungs-Felder unter dem Sockel (Fan-out)
-  for (let i = -8; i <= 8; i++)
-    for (let j = -10; j <= 10; j++) if ((i + j) % 2 === 0 && Math.abs(i) > 5) VIAS.push([CPU.x + i * 2.6, CPU.z + j * 2.4, 0.3]);
-  for (let i = 0; i < 260; i++) VIAS.push([r.range(-HW + 5, HW - 5), r.range(-HD + 5, HD - 5), 0.3]);
+  const sockR = CPU.x + 24;
+  const sockB = CPU.z + 29;
+  const sockL = CPU.x - 24;
 
-  // Bestückungsdruck
+  // ── Kupferflächen (Masse/Versorgung)
+  POURS.push(
+    [[-120, -150], [-48, -150], [-48, -122], [-82, -122], [-86, -118], [-86, -14], [-120, -14]],
+    [[-46, -122], [30, -122], [34, -118], [34, -100], [-46, -100]],
+    [[98, -92], [119, -92], [119, -28], [98, -28]],
+    [[-120, 90], [-62, 90], [-62, 150], [-120, 150]],
+    [[56, 108], [92, 108], [92, 150], [56, 150]],
+  );
+  for (let x = -112; x < -90; x += 4) for (let z = -140; z < -20; z += 6) RELIEFS.push([x + (z % 12 ? 2 : 0), z]);
+  for (let x = -40; x < 28; x += 6) RELIEFS.push([x, -118], [x + 3, -104]);
+
+  // ── Spannungswandler → Sockel: breite Leitungen
+  for (let i = 0; i < 8; i++) {
+    const x = -52 + i * 11.5;
+    TRACES.push({ pts: path([[x, -106], [x, -99], [x * 0.7 - 2, -96]], 'v'), w: 2.4 });
+  }
+  for (let i = 0; i < 7; i++) {
+    const z = -100 + i * 11.5;
+    TRACES.push({ pts: path([[-69, z], [-60, z], [sockL - 1, z * 0.9 - 6]]), w: 2.4 });
+  }
+  TRACES.push({ pts: path([[-60, -141], [-60, -128], [-52, -120]], 'v'), w: 3.2 });
+  TRACES.push({ pts: path([[106, -80], [94, -80], [80, -66], [60, -66]]), w: 2.6 });
+
+  // ── CPU → RAM: zwei Kanäle, je 4 Byte-Gruppen à 8 Leitungen, mit Mäandern
+  bus(path([[sockR, -101], [30, -101], [36, -107], [DIMM.slotsX[0] - 2, -107]]), { n: 32, pitch: 0.3, w: 0.1, groups: 8, gap: 1.4, meander: true });
+  bus(path([[sockR, -54], [28, -54], [34, -48], [DIMM.slotsX[0] - 2, -48]]), { n: 32, pitch: 0.3, w: 0.1, groups: 8, gap: 1.4, meander: true });
+  // Adress-/Steuerleitungen (Fly-by) zwischen den Kanälen
+  bus(path([[sockR, -78], [DIMM.slotsX[0] - 2, -78]]), { n: 14, pitch: 0.35, w: 0.1 });
+
+  // ── CPU → PCIe x16: 16 Differenzpaare
+  bus(path([[CPU.x - 12, sockB + 1], [CPU.x - 12, -6], [-46, PCIE1_Z - 20], [-46, PCIE1_Z - 5]], 'v'), { n: 32, pitch: 0.75, w: 0.1, pairs: true });
+  // ── CPU → M.2: 4 Paare
+  bus(path([[CPU.x - 22, sockB + 1], [CPU.x - 22, sockB + 4], [M2.x0 - 4, M2.z - 12], [M2.x0 - 4, M2.z - 4]], 'v'), { n: 8, pitch: 0.7, w: 0.1, pairs: true });
+  // ── CPU → Chipsatz (DMI): 8 Paare
+  bus(path([[CPU.x + 18, sockB + 1], [CPU.x + 18, 26], [40, 52], [PCH.x - 16, 52], [PCH.x - 14, 60]], 'v'), { n: 16, pitch: 0.75, w: 0.1, pairs: true });
+
+  // ── Chipsatz → Peripherie
+  const px = PCH.x;
+  const pz = PCH.z;
+  bus(path([[px + 12, pz + 13], [px + 12, 104], [px + 20, 112], [px + 20, 117]], 'v'), { n: 8, pitch: 0.7, w: 0.1, pairs: true }); // SATA
+  bus(path([[px + 12, pz - 13], [px + 12, 40], [px + 22, 30], [px + 22, 26]], 'v'), { n: 8, pitch: 0.7, w: 0.1, pairs: true }); // USB-Header
+  bus(path([[px - 13, pz - 6], [40, pz - 6], [28, 56], [-68, 56], [-70, 52]]), { n: 4, pitch: 0.7, w: 0.1, pairs: true }); // PCIe x1 #1
+  bus(path([[px - 8, pz + 13], [px - 8, 112], [px - 14, 118], [-58, 118], [-66, 126], [-68, 130]], 'v'), { n: 4, pitch: 0.7, w: 0.1, pairs: true }); // PCIe x1 #2
+  bus(path([[px - 13, pz + 6], [66, pz + 6], [56, 98], [0, 98], [-6, 104], [-6, 120]]), { n: 6, pitch: 0.4, w: 0.1 }); // BIOS (SPI)
+  bus(path([[px - 13, pz + 10], [64, pz + 10], [58, 104], [-70, 104], [-78, 110]]), { n: 6, pitch: 0.4, w: 0.12 }); // Audio
+  // Lüfter-/Frontpanel-Anschlüsse
+  bus(path([[30, -143], [30, -132], [20, -122], [20, -118]], 'v'), { n: 4, pitch: 0.5, w: 0.15 });
+  bus(path([[79, 144], [79, 136], [px - 4, 128], [px - 4, pz + 18]], 'v'), { n: 6, pitch: 0.5, w: 0.15 });
+  bus(path([[-112, 64], [-100, 64], [-92, 56], [-80, 56]]), { n: 4, pitch: 0.5, w: 0.15 });
+
+  // ── Fan-out unter Chips
+  fanout(px, pz, PCH.sub + 1, PCH.sub + 1, 1.0);
+  fanout(-10, 124, 6, 5, 1.27, 0.9);
+  fanout(-84, 112, 12, 12, 0.8);
+  for (let i = -11; i <= 11; i++) {
+    VIAS.push([CPU.x + i * 2, CPU.z - 31, 0.28], [CPU.x + i * 2, CPU.z + 31, 0.28]);
+  }
+  for (let j = -13; j <= 13; j++) VIAS.push([CPU.x - 26, CPU.z + j * 2, 0.28], [CPU.x + 26, CPU.z + j * 2, 0.28]);
+
+  // ── Stitching-Vias am Rand
+  for (let x = -HW + 4; x <= HW - 4; x += 5) VIAS.push([x, -HD + 2.6, 0.3], [x, HD - 2.6, 0.3]);
+  for (let z = -HD + 4; z <= HD - 4; z += 5) VIAS.push([-HW + 2.6, z, 0.3], [HW - 2.6, z, 0.3]);
+
+  // ── kurze Verbindungen bei den Kleinteilen (45°)
+  for (let i = 0; i < 70; i++) {
+    const a: P = [r.range(-HW + 10, HW - 10), r.range(-HD + 10, HD - 10)];
+    const b: P = [a[0] + r.range(-7, 7), a[1] + r.range(-7, 7)];
+    TRACES.push({ pts: path([a, b], r.chance(0.5) ? 'h' : 'v'), w: r.pick([0.12, 0.15, 0.2]) });
+    VIAS.push([a[0], a[1], 0.3], [b[0], b[1], 0.3]);
+  }
+  // ── Testpunkte
+  for (let i = 0; i < 26; i++) TESTPTS.push([r.range(-HW + 10, HW - 10), r.range(-HD + 10, HD - 10), 0.5]);
+
+  // ── Bestückungsdruck
   const T = (s: string, x: number, z: number, size = 2.2, rot = 0) => SILK.push({ kind: 'text', s, x, z, size, rot });
   const R = (x: number, z: number, w: number, d: number) => SILK.push({ kind: 'rect', x, z, w, d });
   T('TINY JOHNNY  TJ-Z1 ATX', 10, 142, 4.2);
   T('REV 1.02', 86, 142, 2.4);
-  T('CPU1', CPU.x - 24, CPU.z + 26, 2.6);
-  T('LGA1851', CPU.x + 14, CPU.z + 26, 2.0);
+  T('CPU1', CPU.x - 24, CPU.z + 34, 2.6);
+  T('LGA1851', CPU.x + 14, CPU.z + 34, 2.0);
   DIMM.slotsX.forEach((x, i) => T(`DDR5_${'AB'[i >> 1]}${(i % 2) + 1}`, x, 14, 1.8, -Math.PI / 2));
   T('M2_1', M2.x0 + 6, M2.z + 14, 2.2);
   T('PCIEX16_1', -100, PCIE1_Z + 7, 2.2);
   T('PCIEX1_1', -100, 52 + 6, 2.0);
   T('PCIEX16_2', -100, 92 + 7, 2.0);
-  T('CPU_FAN', 30, -146, 1.8);
-  T('EPS_12V', -95, -137, 1.8);
-  T('ATX_PWR', 108, -96, 1.8, -Math.PI / 2);
+  T('CPU_FAN', 30, -150, 1.8);
+  T('EPS_12V', -60, -137, 1.8);
+  T('ATX_PWR', 104, -96, 1.8, -Math.PI / 2);
   T('SATA6G_1-4', 104, 112, 1.8);
+  T('PCH', PCH.x - 14, PCH.z + 21, 2.0);
   T('BAT', 40, 112, 1.8);
   T('CLR_CMOS', 60, 136, 1.4);
-  T('BIOS', -10, 128, 1.6);
+  T('BIOS', -10, 129, 1.6);
   T('AUDIO', -108, 85, 2.0);
-  T('USB3_E1', 104, 26, 1.6);
+  T('USB3_E1', 104, 34, 1.6);
   T('F_PANEL', 80, 150, 1.6);
   T('SYS_FAN1', -118, 70, 1.4, -Math.PI / 2);
   T('Designed for learning', -70, 148, 1.8);
@@ -152,22 +275,21 @@ function bundle(x0: number, z0: number, x1: number, z1: number, n: number, pitch
   R(M2.x0 + M2.len / 2, M2.z, M2.len + 4, M2.w + 3);
   R(40, 125, 22, 22);
   R(-10, 124, 8, 6);
-  // Bauteil-Bezeichner verstreut (R123, C45 …)
+  R(PCH.x, PCH.z, 42, 38);
   for (let i = 0; i < 120; i++) {
     const s = `${r.pick(['R', 'C', 'C', 'L', 'Q', 'U', 'D'])}${r.int(1, 999)}`;
     T(s, r.range(-HW + 10, HW - 10), r.range(-HD + 10, HD - 10), 0.9, r.chance(0.3) ? -Math.PI / 2 : 0);
   }
   for (let i = 0; i < 40; i++) SILK.push({ kind: 'dot', x: r.range(-HW + 10, HW - 10), z: r.range(-HD + 10, HD - 10), size: 0.35 });
-  // Trennlinie Audiobereich
   SILK.push({ kind: 'line', x: -60, z: 88, x2: -60, z2: 150 });
   SILK.push({ kind: 'line', x: -120, z: 88, x2: -60, z2: 88 });
 })();
 
-export type PcbMode = 'color' | 'rough';
+export type PcbMode = 'color' | 'rough' | 'height';
 
 /**
  * Zeichnet den Ausschnitt [x0,x1] × [z0,z1] (mm) der Platine in eine Leinwand der Größe w × h.
- * `micro` fügt bei starker Vergrößerung Kupferkörnung, Glasfasergewebe und Lötstoppfarben-Struktur hinzu.
+ * `micro` fügt bei starker Vergrößerung Glasfasergewebe und die Struktur des Lötstopplacks hinzu.
  */
 export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1: number, z1: number, w: number, h: number, mode: PcbMode, micro = 0) {
   const sx = w / (x1 - x0);
@@ -175,12 +297,23 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
   const X = (x: number) => (x - x0) * sx;
   const Z = (z: number) => (z - z0) * sz;
   const col = mode === 'color';
-  g.fillStyle = col ? '#15171b' : '#a8a8a8';
+  const hgt = mode === 'height';
+  const pal = {
+    base: col ? '#121417' : hgt ? '#404040' : '#a8a8a8',
+    pour: col ? '#171a1f' : hgt ? '#5a5a5a' : '#989898',
+    trace: col ? '#22262d' : hgt ? '#b4b4b4' : '#6a6a6a',
+    ridge: col ? '#2c3139' : hgt ? '#d0d0d0' : '#585858',
+    via: col ? '#2a2e36' : hgt ? '#c0c0c0' : '#606060',
+    drill: col ? '#060708' : hgt ? '#101010' : '#c0c0c0',
+    tp: col ? '#c9a24f' : hgt ? '#606060' : '#383838',
+    silk: col ? '#dfe2e6' : hgt ? '#9a9a9a' : '#d6d6d6',
+  };
+  g.fillStyle = pal.base;
   g.fillRect(0, 0, w, h);
 
   if (micro > 0 && col) {
-    // Glasfasergewebe (FR-4) schimmert durch die Lötstoppfarbe
-    const pitchMm = 0.5; // Garnabstand ~ 0,5 mm
+    // Glasfasergewebe (FR-4) schimmert durch den Lack
+    const pitchMm = 0.5;
     g.save();
     g.globalAlpha = 0.2 * Math.min(1, micro);
     for (let k = 0; k < 2; k++) {
@@ -193,7 +326,6 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
         else g.fillRect(0, Z(c - pitchMm * 0.36), w, pitchMm * 0.72 * sz);
       }
     }
-    // einzelne Glasfasern (~7 µm) bei sehr starker Vergrößerung
     if (micro > 1.5) {
       g.globalAlpha = 0.22;
       g.strokeStyle = '#6c7682';
@@ -210,31 +342,46 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
   }
 
   // Kupferflächen
-  g.fillStyle = col ? '#1b1e23' : '#9a9a9a';
+  g.fillStyle = pal.pour;
   for (const p of POURS) {
     g.beginPath();
     p.forEach(([x, z], i) => (i ? g.lineTo(X(x), Z(z)) : g.moveTo(X(x), Z(z))));
     g.closePath();
     g.fill();
   }
+  // Wärmefallen: Freistellung mit vier Stegen
+  for (const [x, z] of RELIEFS) {
+    const rr = 0.9 * sx;
+    if (rr < 1.2) continue;
+    g.fillStyle = pal.base;
+    g.beginPath();
+    g.arc(X(x), Z(z), rr, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = pal.pour;
+    g.lineWidth = 0.35 * sx;
+    g.beginPath();
+    g.moveTo(X(x) - rr, Z(z));
+    g.lineTo(X(x) + rr, Z(z));
+    g.moveTo(X(x), Z(z) - rr);
+    g.lineTo(X(x), Z(z) + rr);
+    g.stroke();
+    VIAS_DRAW(g, X(x), Z(z), 0.45 * sx, pal);
+  }
 
-  // Leiterbahnen
+  // Leiterbahnen: Kupfer unter dem Lack, mit leichtem Grat in der Mitte (wirkt erhaben)
   g.lineCap = 'round';
   g.lineJoin = 'round';
   for (const tr of TRACES) {
     const lw = tr.w * sx;
-    if (lw < 0.25 && !micro) {
-      g.globalAlpha = Math.max(0.15, lw * 3);
-    }
-    g.strokeStyle = col ? '#272c34' : '#707070';
+    g.globalAlpha = lw < 0.6 ? Math.max(0.25, lw * 1.4) : 1;
+    g.strokeStyle = pal.trace;
     g.lineWidth = Math.max(0.6, lw);
     g.beginPath();
     tr.pts.forEach(([x, z], i) => (i ? g.lineTo(X(x), Z(z)) : g.moveTo(X(x), Z(z))));
     g.stroke();
-    if (col && lw > 3) {
-      // Lichtkante auf dicken Bahnen (die Lötstoppfarbe wölbt sich über dem Kupfer)
-      g.strokeStyle = '#30363f';
-      g.lineWidth = lw * 0.45;
+    if (lw > 2.5) {
+      g.strokeStyle = pal.ridge;
+      g.lineWidth = lw * 0.4;
       g.stroke();
     }
     g.globalAlpha = 1;
@@ -243,20 +390,28 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
   // Durchkontaktierungen
   for (const [x, z, r] of VIAS) {
     const rr = r * sx;
-    if (rr < 0.4) continue;
-    g.fillStyle = col ? '#2b3038' : '#666';
+    if (rr < 0.5) continue;
+    VIAS_DRAW(g, X(x), Z(z), rr, pal);
+  }
+  // Testpunkte (offen, vergoldet)
+  for (const [x, z, r] of TESTPTS) {
+    const rr = r * sx;
+    if (rr < 0.6) continue;
+    g.fillStyle = pal.tp;
     g.beginPath();
     g.arc(X(x), Z(z), rr, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = col ? '#0c0d10' : '#b0b0b0';
-    g.beginPath();
-    g.arc(X(x), Z(z), rr * 0.45, 0, Math.PI * 2);
-    g.fill();
+    if (col && rr > 3) {
+      g.fillStyle = '#e8cf8a';
+      g.beginPath();
+      g.arc(X(x) - rr * 0.25, Z(z) - rr * 0.25, rr * 0.35, 0, Math.PI * 2);
+      g.fill();
+    }
   }
 
   // Bestückungsdruck
-  g.fillStyle = col ? '#dfe2e6' : '#d0d0d0';
-  g.strokeStyle = g.fillStyle;
+  g.fillStyle = pal.silk;
+  g.strokeStyle = pal.silk;
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   for (const s of SILK) {
@@ -286,7 +441,7 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
   }
 
   if (micro > 0 && col) {
-    // Lötstoppfarbe: feine Pigment-Körnung und winzige Bläschen
+    // Lötstopplack: feine Pigment-Körnung und winzige Bläschen
     const r = rng(Math.floor(x0 * 1000) ^ Math.floor(z0 * 1000));
     g.save();
     const n = Math.floor(w * h * 0.0009);
@@ -298,6 +453,17 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
     }
     g.restore();
   }
+}
+
+function VIAS_DRAW(g: CanvasRenderingContext2D, x: number, z: number, rr: number, pal: { via: string; drill: string }) {
+  g.fillStyle = pal.via;
+  g.beginPath();
+  g.arc(x, z, rr, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = pal.drill;
+  g.beginPath();
+  g.arc(x, z, rr * 0.48, 0, Math.PI * 2);
+  g.fill();
 }
 
 export const BOARD_HW = HW;

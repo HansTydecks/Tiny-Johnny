@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEVELS, PATHS } from './levels';
 import { UI, PATH_BUTTONS } from './ui';
+import { PARTS } from './parts';
 import type { LevelDef } from './types';
 
 const byId = new Map(LEVELS.map((l) => [l.id, l]));
@@ -33,7 +34,7 @@ describe('Zoomstufen', () => {
   });
 
   it('jede Kette endet bei den Atomen (Sichtfeld unter 1 nm)', () => {
-    expect(PATHS.length).toBe(5);
+    expect(PATHS.length).toBe(6);
     for (const p of PATHS) {
       const leaf = byId.get(p.leaf);
       expect(leaf, p.leaf).toBeDefined();
@@ -70,5 +71,18 @@ describe('Zoomstufen', () => {
       });
     }
     for (const [k, v] of Object.entries(UI)) check(v, k);
+    for (const [k, p] of Object.entries(PARTS)) {
+      check(p.name, k);
+      check(p.info, k);
+    }
+  });
+
+  it('zoombare Bauteile zeigen auf echte Ebenen direkt unter der Platine', () => {
+    for (const [k, p] of Object.entries(PARTS)) {
+      if (!p.zoomTo) continue;
+      const l = byId.get(p.zoomTo);
+      expect(l, k).toBeDefined();
+      expect(l!.parent, k).toBe('board');
+    }
   });
 });

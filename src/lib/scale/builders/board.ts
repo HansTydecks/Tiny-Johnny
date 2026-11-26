@@ -34,6 +34,7 @@ import {
   HDD_SPINDLE,
   M2,
   PCIE1_Z,
+  PCH,
   RAM_CHIP,
   RAM_CHIP_Z,
   SSD_NAND,
@@ -42,6 +43,7 @@ import {
 } from './layout';
 import { drawPcb } from './pcbart';
 import { ant } from './life';
+import { buildFan, type Fan } from './fan';
 
 const HW = BOARD.w / 2;
 const HD = BOARD.d / 2;
@@ -54,18 +56,25 @@ export function buildBoard(ctx: BuildCtx): Built {
   const labels: LabelDef[] = [];
   const pick: THREE.Object3D[] = [];
   const r = rng(42);
+  /** Bauteil markieren: Name für die Infokarte, Treffer beim Zielen */
+  const tag = <T extends THREE.Object3D>(o: T, id: string): T => {
+    o.userData.part = id;
+    pick.push(o);
+    return o;
+  };
 
   // ─────────────── Platine
   const { cv, g } = makeCanvas(2560, 3200);
   drawPcb(g, -HW, -HD, HW, HD, cv.width, cv.height, 'color');
   const rough = makeCanvas(1280, 1600);
   drawPcb(rough.g, -HW, -HD, HW, HD, rough.cv.width, rough.cv.height, 'rough');
-  const topMat = std({ map: canvasTex(cv, A), roughnessMap: canvasTex(rough.cv, A, false), roughness: 1, metalness: 0.15, bumpMap: canvasTex(rough.cv, A, false), bumpScale: 0.02 });
+  const height = makeCanvas(1280, 1600);
+  drawPcb(height.g, -HW, -HD, HW, HD, height.cv.width, height.cv.height, 'height');
+  const topMat = std({ map: canvasTex(cv, A), roughnessMap: canvasTex(rough.cv, A, false), roughness: 1, metalness: 0.1, bumpMap: canvasTex(height.cv, A, false), bumpScale: 0.035 });
   const top = new THREE.Mesh(new THREE.PlaneGeometry(BOARD.w, BOARD.d), topMat);
   top.rotation.x = -Math.PI / 2;
   top.userData.surface = 'pcb';
-  root.add(top);
-  pick.push(top);
+  root.add(tag(top, 'pcb'));
   const edge = std({ color: 0x2a2e27, roughness: 0.8 });
   const body = mesh(new THREE.BoxGeometry(BOARD.w, BOARD.t, BOARD.d), edge, 0, -BOARD.t / 2 - 0.001, 0);
   root.add(body);
@@ -111,7 +120,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   // ─────────────── CPU-Sockel und Prozessor
   const cpu = new THREE.Group();
   cpu.position.set(CPU.x, 0, CPU.z);
-  root.add(cpu);
+  root.add(tag(cpu, 'cpu'));
   addFootprint(CPU.x, CPU.z, 56, 64);
   cpu.add(boxOn(47.5, CPU.sockTop, 57, blackPlastic, 0, 0, 0, 0.4));
   const steel = MAT.steel({ roughness: 0.32 });
@@ -183,7 +192,6 @@ export function buildBoard(ctx: BuildCtx): Built {
   const ihsTop = boxOn(CPU.pkgW - 7, CPU.ihsT - 0.8, CPU.pkgD - 7, [ihsFlange, ihsFlange, ihsMat, ihsFlange, ihsFlange, ihsFlange] as unknown as THREE.Material, 0, CPU_SUB_TOP + 0.8, 0);
   ihs.add(ihsTop);
   cpu.add(ihs);
-  pick.push(ihsTop);
   anims.push((f) => {
     const k = f.near('cpu.die') * smoothstep(-1.2, -1.75, f.z);
     ihs.position.y = k * 16;
@@ -200,7 +208,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   const chokeAt = (x: number, z: number) => {
     const c = new THREE.Mesh(chokeGeo, [chokeSide, chokeSide, chokeMat, chokeSide, chokeSide, chokeSide]);
     c.position.set(x, 3.1, z);
-    root.add(c);
+    root.add(tag(c, 'vrm'));
     addFootprint(x, z, 10, 10, 0.5);
   };
   for (let i = 0; i < 8; i++) chokeAt(-52 + i * 11.5, -112);
@@ -213,7 +221,7 @@ export function buildBoard(ctx: BuildCtx): Built {
     const c = new THREE.Mesh(capGeo, [capSide, capTopMat, capSide]);
     c.scale.y = h / 7;
     c.position.set(x, h / 2, z);
-    root.add(c);
+    root.add(tag(c, 'caps'));
     addFootprint(x, z, 8, 8, 0.5);
   };
   for (let i = 0; i < 9; i++) capAt(-46 + i * 9, -101);
@@ -237,10 +245,11 @@ export function buildBoard(ctx: BuildCtx): Built {
   hsLeft.position.set(-102, 0, -88);
   root.add(hsLeft);
   addFootprint(-102, -88, 36, 126);
-  pick.push(hsLeft, hsTop);
+  tag(hsLeft, 'heatsink');
+  tag(hsTop, 'heatsink');
   // EPS-Stromanschluss
   const eps = boxOn(17.5, 13, 9.6, blackPlastic, -60, 0, -146, 0.3);
-  root.add(eps);
+  root.add(tag(eps, 'eps'));
   addFootprint(-60, -146, 18, 10);
 
   // ─────────────── Anschlüsse hinten (ragen über den Rand)
@@ -272,7 +281,7 @@ export function buildBoard(ctx: BuildCtx): Built {
       io.add(boxOn(16.2, 1.6, 9, kind === 'usb3' ? blue : blackPlastic, -122, 10, z));
     }
   }
-  root.add(io);
+  root.add(tag(io, 'io'));
 
   // ─────────────── Arbeitsspeicher-Steckplätze und Riegel
   const slotLatch = greyPlastic;
@@ -282,7 +291,7 @@ export function buildBoard(ctx: BuildCtx): Built {
     s.add(boxOn(2.1, 8.6, 144, blackPlastic, -2.15, 0, 0), boxOn(2.1, 8.6, 144, blackPlastic, 2.15, 0, 0));
     s.add(boxOn(6.8, 11, 5, slotLatch, 0, 0, -74, 0.4), boxOn(6.8, 11, 5, slotLatch, 0, 0, 74, 0.4));
     s.position.set(x, 0, DIMM.z);
-    root.add(s);
+    root.add(tag(s, 'dimmslot'));
     addFootprint(x, DIMM.z, 7, 154, 1);
     void i;
   });
@@ -323,10 +332,9 @@ export function buildBoard(ctx: BuildCtx): Built {
       // PMIC + SPD
       stick.add(boxOn(0.8, 4, 4, epoxy, x + side * (DIMM.t / 2 + 0.4), DIMM.bottom + 22.5, DIMM.z, 0.1));
     }
-    root.add(stick);
+    root.add(tag(stick, 'ram'));
   }
   root.add(inst(new THREE.BoxGeometry(1, 1, 1), MAT.gold({ roughness: 0.18 }), fingers));
-  pick.push(...dimmPick);
   anims.push((f) => {
     if (!anchorChip) return;
     const k = f.near('ram.die') * smoothstep(-1.55, -1.95, f.z);
@@ -340,7 +348,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   for (let i = 0; i < 12; i++) for (let j = 0; j < 2; j++) holes.push({ p: [-2.1 + j * 4.2, 13.02, -23 + i * 4.2], s: [3, 0.05, 3] });
   atx.add(inst(new THREE.BoxGeometry(1, 1, 1), std({ color: 0x050505, roughness: 1 }), holes));
   atx.position.set(112, 0, -60);
-  root.add(atx);
+  root.add(tag(atx, 'atx'));
   addFootprint(112, -60, 11, 52);
 
   // ─────────────── M.2-SSD
@@ -349,7 +357,6 @@ export function buildBoard(ctx: BuildCtx): Built {
   ssd.add(boxOn(4.5, 3.2, 22.5, blackPlastic, M2.x0 - 1.8, 0, M2.z, 0.2));
   const ssdBoard = boxOn(M2.len, M2.t, M2.w, ssdPcb, M2.x0 + M2.len / 2, M2.y, M2.z, 0.4);
   ssd.add(ssdBoard);
-  pick.push(ssdBoard);
   const ssdFing: InstSpec[] = [];
   for (let k = 0; k < 30; k++) ssdFing.push({ p: [M2.x0 + 1.5, M2.y + M2.t + 0.01, M2.z - 9.5 + k * 0.65 + (k > 23 ? 1.2 : 0)], s: [3, 0.03, 0.35] });
   ssd.add(inst(new THREE.BoxGeometry(1, 1, 1), MAT.gold(), ssdFing));
@@ -368,7 +375,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   ssd.add(nand1, nand2);
   ssd.add(boxOn(8, 1, 12, [epoxy, epoxy, dramTop, epoxy, epoxy, epoxy] as unknown as THREE.Material, M2.x0 + 66, sy, M2.z, 0.15));
   for (let k = 0; k < 40; k++) smd.push({ p: [M2.x0 + r.range(8, 76), sy + 0.25, M2.z + (r.chance(0.5) ? -1 : 1) * r.range(7.5, 10)], s: [1, 0.5, 0.5], c: r.chance(0.6) ? 0x9b7f5a : 0x161616 });
-  root.add(ssd);
+  root.add(tag(ssd, 'ssd'));
   addFootprint(M2.x0 + M2.len / 2, M2.z, M2.len + 6, M2.w + 2);
   anims.push((f) => {
     const k = f.near('ssd.pkg') * smoothstep(-1.55, -1.95, f.z);
@@ -385,7 +392,7 @@ export function buildBoard(ctx: BuildCtx): Built {
       s.add(boxOn(len + 1, 11.4, 0.35, MAT.steel({ roughness: 0.25 }), x0 + len / 2, 0, z + 4));
       s.add(boxOn(4, 12, 8.5, greyPlastic, x0 + len + 2, 0, z, 0.4));
     }
-    root.add(s);
+    root.add(tag(s, 'pcie'));
     addFootprint(x0 + len / 2, z, len + 6, 9);
   };
   slot(-95, 89, PCIE1_Z, blackPlastic, true);
@@ -393,15 +400,35 @@ export function buildBoard(ctx: BuildCtx): Built {
   slot(-95, 89, 92, greyPlastic, false);
   slot(-95, 25, 132, blackPlastic, false);
 
-  // ─────────────── Chipsatz mit Kühlkörper
+  // ─────────────── Chipsatz: Träger, Chip und Kühlkörper (hebt beim Hineinzoomen ab)
   const pch = new THREE.Group();
-  pch.add(boxOn(40, 9, 36, gun, 0, 0, 0, 1.4));
-  for (let i = 0; i < 6; i++) pch.add(boxOn(36, 0.4, 1.2, accent, 0, 9, -12 + i * 4.8));
-  pch.add(textLabelPlate('TINY JOHNNY', A, 30, 6, 0, 9.25, 13));
-  pch.position.set(88, 0, 72);
-  root.add(pch);
-  addFootprint(88, 72, 40, 36);
-  pick.push(pch);
+  pch.userData.part = 'pch';
+  pch.add(boxOn(PCH.sub, PCH.subT, PCH.sub, MAT.substrate({ color: 0x1f4632 }), 0, 0, 0, 0.2));
+  pch.add(boxOn(PCH.dieW, PCH.dieT, PCH.dieD, MAT.silicon({ iridescence: 0.2 }), 0, PCH.subT + 0.08, 0));
+  const pchCaps: InstSpec[] = [];
+  for (let i = 0; i < 24; i++) {
+    const side = i % 4;
+    const k = Math.floor(i / 4) * 2.4 - 6;
+    const pos: [number, number] = side === 0 ? [k, -9] : side === 1 ? [k, 9] : side === 2 ? [-9, k] : [9, k];
+    pchCaps.push({ p: [pos[0], PCH.subT + 0.25, pos[1]], s: side < 2 ? [1, 0.5, 0.5] : [0.5, 0.5, 1] });
+  }
+  pch.add(inst(new THREE.BoxGeometry(1, 1, 1), MAT.ceramic({ roughness: 0.45 }), pchCaps));
+  const pchSink = new THREE.Group();
+  pchSink.add(boxOn(40, 9, 36, gun, 0, PCH.subT + 0.7, 0, 1.4));
+  for (let i = 0; i < 6; i++) pchSink.add(boxOn(36, 0.4, 1.2, accent, 0, PCH.subT + 9.7, -12 + i * 4.8));
+  pchSink.add(textLabelPlate('TINY JOHNNY', A, 30, 6, 0, PCH.subT + 9.95, 13));
+  pch.add(pchSink);
+  pch.position.set(PCH.x, 0, PCH.z);
+  root.add(tag(pch, 'pch'));
+  addFootprint(PCH.x, PCH.z, 40, 36);
+  anims.push((f) => {
+    const k = f.near('pch.die') * smoothstep(-1.1, -1.6, f.z);
+    pchSink.position.y = k * 22;
+    pchSink.position.x = k * 8;
+    pchSink.rotation.z = k * 0.3;
+    setFade(pchSink, 1 - smoothstep(0.5, 1, k));
+    pchSink.visible = k < 0.999;
+  });
 
   // SATA, USB-Header, Lüfteranschlüsse, Frontpanel
   for (const [z, y] of [
@@ -410,9 +437,9 @@ export function buildBoard(ctx: BuildCtx): Built {
     [118, 6.2],
     [132, 6.2],
   ])
-    root.add(boxOn(12, 6, 9, blackPlastic, 115, y, z, 0.3));
+    root.add(tag(boxOn(12, 6, 9, blackPlastic, 115, y, z, 0.3), 'sata'));
   addFootprint(115, 125, 12, 24);
-  root.add(boxOn(9, 9, 19, MAT.plastic(0x2b4e9e), 113, 0, 24, 0.3));
+  root.add(tag(boxOn(9, 9, 19, MAT.plastic(0x2b4e9e), 113, 0, 24, 0.3), 'usbhdr'));
   addFootprint(113, 24, 9, 19);
   const white = MAT.plastic(0xf2f2ee, { roughness: 0.45 });
   for (const [x, z] of [
@@ -420,41 +447,41 @@ export function buildBoard(ctx: BuildCtx): Built {
     [-112, 68],
     [100, 147],
   ]) {
-    root.add(boxOn(10, 6, 5.5, white, x, 0, z, 0.3));
+    root.add(tag(boxOn(10, 6, 5.5, white, x, 0, z, 0.3), 'fanhdr'));
     addFootprint(x, z, 10, 6);
   }
   const pins: InstSpec[] = [];
   for (let i = 0; i < 10; i++) pins.push({ p: [74 + (i % 5) * 2.54, 1 + 3, 146 + Math.floor(i / 5) * 2.54], s: [0.64, 6, 0.64] });
-  root.add(boxOn(13, 2.5, 6, blackPlastic, 79, 0, 147.3));
+  root.add(tag(boxOn(13, 2.5, 6, blackPlastic, 79, 0, 147.3), 'fpanel'));
   root.add(inst(new THREE.BoxGeometry(1, 1, 1), MAT.gold(), pins));
   addFootprint(79, 147, 14, 7);
 
   // CMOS-Batterie
-  root.add(boxOn(23, 2.2, 23, blackPlastic, 40, 0, 125, 1));
+  root.add(tag(boxOn(23, 2.2, 23, blackPlastic, 40, 0, 125, 1), 'battery'));
   const cell = new THREE.Mesh(
     new THREE.CylinderGeometry(10, 10, 3.2, 64),
     [MAT.steel({ roughness: 0.2 }), MAT.steel({ map: textTex(['CR2032', '3V  +'], { w: 256, h: 256, color: '#4a4d52', bg: '#c9ccd0', aniso: A }), roughness: 0.25 }), MAT.steel()],
   );
   cell.position.set(40, 2.2 + 1.6, 125);
-  root.add(cell);
+  root.add(tag(cell, 'battery'));
   addFootprint(40, 125, 23, 23);
   // BIOS-Chip
-  root.add(boxOn(5, 1.5, 4, epoxy, -10, 0, 124, 0.1));
+  root.add(tag(boxOn(5, 1.5, 4, epoxy, -10, 0, 124, 0.1), 'bios'));
   addFootprint(-10, 124, 6, 6);
   // Audio
   const gold = MAT.plastic(0xc9a03b, { roughness: 0.4, metalness: 0.3 });
   for (let i = 0; i < 6; i++) {
     const c = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 7, 28), [gold, std({ color: 0xb2b5b9, metalness: 1, roughness: 0.3 }), gold]);
     c.position.set(-112 + (i % 3) * 9, 3.5, 128 + Math.floor(i / 3) * 10);
-    root.add(c);
+    root.add(tag(c, 'audio'));
     addFootprint(c.position.x, c.position.z, 7, 7);
   }
-  root.add(boxOn(11, 1.4, 11, MAT.tin({ roughness: 0.35 }), -84, 0, 112, 0.2));
+  root.add(tag(boxOn(11, 1.4, 11, MAT.tin({ roughness: 0.35 }), -84, 0, 112, 0.2), 'audio'));
   addFootprint(-84, 112, 11, 11);
 
   // ─────────────── Grafikkarte (steht im ersten PCIe-Steckplatz)
   const gpu = new THREE.Group();
-  root.add(gpu);
+  root.add(tag(gpu, 'gpu'));
   const gLen = GPU.x1 - GPU.x0;
   const gH = GPU.y1 - GPU.y0;
   const gcx = (GPU.x0 + GPU.x1) / 2;
@@ -473,7 +500,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   };
   onFront(52, 52, GPU.subT, gsub, GPU.dieX, GPU.dieY, front + 0.25);
   onFront(GPU.dieW, GPU.dieH, GPU.dieT, MAT.silicon({ iridescence: 0.2 }), GPU.dieX, GPU.dieY, front + 0.25 + GPU.subT + 0.06, 0);
-  const gddrTex = textTex(['TJ G7', 'GDDR7 16Gb', '32Gbps'], { w: 256, h: 220, color: '#9aa0a8', bg: '#17181b', aniso: A });
+  const gddrTex = textTex(['TJ G7', 'GDDR7 16Gb', '32Gbps'], { w: 560, h: 480, color: '#9aa0a8', bg: '#17181b', aniso: A });
   const gddrMat = [epoxy, epoxy, epoxy, epoxy, std({ map: gddrTex, roughness: 0.62 }), epoxy];
   for (let i = 0; i < 4; i++) onFront(14, 12, 1.2, gddrMat, GPU.dieX - 27 + i * 18, GPU.dieY + 40);
   for (let i = 0; i < 4; i++) onFront(14, 12, 1.2, gddrMat, GPU.dieX - 27 + i * 18, GPU.dieY - 40);
@@ -537,50 +564,33 @@ export function buildBoard(ctx: BuildCtx): Built {
   const shroud = new THREE.Mesh(shroudGeo, gun);
   shroud.position.set(gcx, gcy, front + 34);
   cooler.add(shroud);
-  pick.push(shroud);
   cooler.add(mesh(new THREE.BoxGeometry(gLen - 4, 2, 34), gun, gcx, GPU.y1 + 1, front + 18));
   cooler.add(mesh(new THREE.BoxGeometry(gLen - 4, 2, 34), gun, gcx, GPU.y0 + 1, front + 18));
   cooler.add(mesh(new THREE.BoxGeometry(gLen - 30, 1.2, 0.6), accent, gcx + 10, GPU.y1 - 3, front + 38.6));
-  // Lüfter
-  const fans: THREE.Group[] = [];
-  const bladeMat = MAT.plastic(0x16171a, { roughness: 0.4 });
-  const hubTex = textTex(['TJ'], { w: 128, h: 128, color: '#d0d3d8', bg: '#202226', aniso: A });
+  // Lüfter (eigene Flügelgeometrie, siehe fan.ts) mit angefasten Ringen in der Abdeckung
+  const fans: Fan[] = [];
+  const frameMat = std({ color: 0x1e2126, metalness: 0.4, roughness: 0.5 });
   for (const fx of fanX) {
-    const fan = new THREE.Group();
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 6, 48), [bladeMat, std({ map: hubTex, roughness: 0.4 }), bladeMat]);
-    hub.rotation.x = Math.PI / 2;
-    fan.add(hub);
-    for (let b = 0; b < 11; b++) {
-      const bl = new THREE.Mesh(new THREE.BoxGeometry(30, 0.9, 13, 6, 1, 1), bladeMat);
-      const p = bl.geometry.attributes.position;
-      for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i);
-        p.setZ(i, p.getZ(i) + Math.pow((x + 15) / 30, 2) * 4);
-      }
-      bl.geometry.computeVertexNormals();
-      const holder = new THREE.Group();
-      bl.position.x = 29;
-      bl.rotation.x = 0.5;
-      holder.add(bl);
-      holder.rotation.z = (b / 11) * Math.PI * 2;
-      holder.rotation.x = Math.PI / 2;
-      const h2 = new THREE.Group();
-      h2.add(holder);
-      h2.rotation.x = -Math.PI / 2;
-      fan.add(h2);
-    }
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(fanR + 0.5, 0.8, 8, 96), gun);
-    fan.add(ring);
-    fan.position.set(fx, gcy, front + 32);
-    cooler.add(fan);
+    const fan = buildFan(fanR, A, frameMat);
+    fan.obj.position.set(fx, gcy, front + 31);
+    cooler.add(fan.obj);
     fans.push(fan);
+    const bezel = new THREE.Mesh(new THREE.TorusGeometry(fanR + 1.2, 0.7, 12, 128), MAT.aluDark({ roughness: 0.35 }));
+    bezel.position.set(fx, gcy, front + 37.2);
+    cooler.add(bezel);
   }
+  // Lichtleiste an der Oberkante
+  const glow = std({ color: 0x0b0d12, emissive: 0x7fb8ff, emissiveIntensity: 1.6, roughness: 0.4 });
+  cooler.add(mesh(new THREE.BoxGeometry(gLen - 60, 1.4, 1.2), glow, gcx + 12, GPU.y1 - 0.8, front + 38.2));
   anims.push((f) => {
-    const sp = f.reduced ? 2 : 9;
-    fans.forEach((fan, i) => (fan.rotation.z -= f.dt * sp * (1 + i * 0.03)));
-    const k = f.near('gpu.die') * smoothstep(-0.85, -1.45, f.z);
+    const sp = f.reduced ? 0.3 : 1.6;
+    fans.forEach((fan, i) => fan.update(f.dt, sp * (1 + i * 0.04)));
+    const k = f.near('gpu.die') * smoothstep(-1.2, -1.52, f.z);
     cooler.position.z = k * 90;
-    setFade(cooler, 1 - smoothstep(0.03, 0.45, k));
+    const a = 1 - smoothstep(0.03, 0.45, k);
+    setFade(cooler, a);
+    for (const fan of fans) fan.blur.userData.fade = a * fan.blurK;
+    glow.emissiveIntensity = 1.3 + 0.4 * Math.sin(f.t * 1.4);
     cooler.visible = k < 0.45;
   });
   addFootprint(gcx, PCIE1_Z + 25, gLen, 52);
@@ -588,7 +598,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   // ─────────────── Festplatte (liegt neben der Platine, Deckel offen)
   const hdd = new THREE.Group();
   hdd.position.set(HDD.x, 0, HDD.z);
-  root.add(hdd);
+  root.add(tag(hdd, 'hdd'));
   const cast = std({ color: 0x8f949b, metalness: 0.85, roughness: 0.55, roughnessMap: noiseTex(256, A, 21, 100, 190, 1) });
   hdd.add(boxOn(HDD.w, HDD.floor, HDD.d, cast, 0, 0, 0, 1));
   const wall = 4;
@@ -635,7 +645,6 @@ export function buildBoard(ctx: BuildCtx): Built {
   const bigPick = new THREE.Mesh(new THREE.CylinderGeometry(HDD.platterR, HDD.platterR, 0.1, 64), new THREE.MeshBasicMaterial({ visible: false }));
   bigPick.position.set(HDD_SPINDLE.x, HDD.platterY, HDD_SPINDLE.z);
   hdd.add(bigPick);
-  pick.push(bigPick);
   // Aktuator: Lager, Arm, Aufhängung, Kopf
   const arm = new THREE.Group();
   arm.position.set(HDD_PIVOT.x, 0, HDD_PIVOT.z);
@@ -773,7 +782,7 @@ export function buildBoard(ctx: BuildCtx): Built {
 
   // ─────────────── Ameise
   const a = ant(1e-3);
-  root.add(a.obj);
+  root.add(tag(a.obj, 'ant'));
   let antPhi = 0;
   const antPos: [number, number, number] = [ANT.x, 0.5, ANT.z];
   anims.push((f) => {
@@ -796,7 +805,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   L([40, GPU.y1 + 6, PCIE1_Z + 30], 'Grafikkarte (GPU)', 'Graphics card (GPU)', 0.267, 0.1, -0.9);
   L([HDD.x, HDD.h + 4, HDD.z + 52], 'Festplatte (HDD) · 3,5″', 'Hard disk (HDD) · 3.5″', 0.147, 0.1, -1.15);
   L([-11, 32, -128], 'Spannungswandler', 'Voltage regulators', undefined, -0.35, -1.3);
-  L([88, 11, 72], 'Chipsatz', 'Chipset', undefined, -0.4, -1.3);
+  L([PCH.x, 13, PCH.z], 'Chipsatz', 'Chipset', 0.025, -0.4, -1.3);
   L([40, 6, 125], 'CMOS-Batterie', 'CMOS battery', 0.02, -0.55, -1.5);
   L([-6, 8, -101], 'Kondensatoren', 'Capacitors', 0.008, -0.8, -1.6);
   L([HDD.x + HDD_SPINDLE.x, HDD.platterY + 3, HDD.z + HDD_SPINDLE.z - 30], 'Magnetscheibe · 7200 U/min', 'Magnetic platter · 7200 rpm', 0.095, -0.6, -1.5);

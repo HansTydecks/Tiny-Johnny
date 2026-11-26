@@ -12,7 +12,7 @@ import type { BuildCtx, LevelDef, Vec3 } from './types';
 import { t } from './zoom';
 import { buildBoard } from './builders/board';
 import { buildDieLevel, buildTexLevel } from './builders/chip';
-import { CPU_DIE, DRAM_DIE, GPU_DIE, NAND_DIE, findBlock, type Die } from './builders/dieshot';
+import { CPU_DIE, DRAM_DIE, GPU_DIE, NAND_DIE, PCH_DIE, findBlock, type Die } from './builders/dieshot';
 import { buildMetal, METAL_BOTTOM } from './builders/metal';
 import { buildFinfet } from './builders/finfet';
 import { buildCapAtoms, buildFinAtoms, buildGrainAtoms, buildTrapAtoms } from './builders/atoms';
@@ -20,7 +20,7 @@ import { buildDramCells } from './builders/dram';
 import { buildNandPkg, buildNandStack, STACK_H, TOP_DIE_Y } from './builders/nand';
 import { buildHddGrains, buildHddSurface, buildHddTracks, GRAIN_TOP } from './builders/hdd';
 import { buildPcbPatch } from './builders/pcb';
-import { ANCHORS, CPU, HDD_ARM_ANGLE, HDD_SPINDLE, hddHeadAt, isBare } from './builders/layout';
+import { ANCHORS, BOARD, CPU, HDD_ARM_ANGLE, HDD_SPINDLE, PCH, hddHeadAt } from './builders/layout';
 import { THREE } from './builders/kit';
 import { dustMite, hair, saltGrain } from './builders/life';
 
@@ -43,6 +43,7 @@ const groupCenter = (d: Die, prefix: string): [number, number] => {
 };
 
 const CORE_F = centerOf(CPU_DIE, 'p1:exec');
+const USB_F = centerOf(PCH_DIE, 'usb');
 const SM_F = groupCenter(GPU_DIE, 'sm2t4:');
 const BANK_F = (() => {
   const b = DRAM_DIE.blocks.filter((x) => x.name === 'bank')[5];
@@ -613,24 +614,131 @@ export const LEVELS: LevelDef[] = [
     build: buildFinAtoms,
   },
 
+  // ───────────────────────── Chipsatz
+  {
+    id: 'pch.die',
+    parent: 'board',
+    unit: 1e-3,
+    anchor: ANCHORS.pchDie,
+    zIn: -1.75,
+    zCover: -2.2,
+    floor: -3.2,
+    catchR: 0.012,
+    pullR: 0.022,
+    view: { pitch: 66 },
+    title: t('Chipsatz', 'Chipset'),
+    path: 'pch',
+    captions: [
+      { z: -1.75, text: t('Der Chipsatz ist der Verteiler des Computers: Er verbindet den Prozessor mit USB, SATA-Laufwerken, Netzwerk, Audio und weiteren Steckplätzen.', 'The chipset is the computer’s hub: it connects the processor to USB, SATA drives, network, audio and further slots.') },
+      { z: -2.3, text: t('Fast der ganze Rand besteht aus Schnittstellen (PHYs), die Signale nach außen senden. Innen sitzen die Steuerungen, z. B. für USB.', 'Almost the whole edge consists of interfaces (PHYs) that send signals out. The controllers, for example for USB, sit inside.') },
+    ],
+    build: (ctx) =>
+      buildDieLevel(ctx, {
+        die: PCH_DIE,
+        thick: PCH.dieT,
+        texW: 3072,
+        substrate: { w: PCH.sub, d: PCH.sub, t: PCH.subT, color: 0x1f4632, caps: 40 },
+        flip: [-2.0, -2.3],
+        labels: [
+          { pos: onDie(PCH_DIE, ...USB_F, 0.05), text: t('USB-Steuerung', 'USB controller'), zMax: -2.25, zMin: -2.9 },
+          { pos: onDie(PCH_DIE, ...centerOf(PCH_DIE, 'pcie'), 0.05), text: t('PCIe-Leitungen', 'PCIe lanes'), zMax: -2.25, zMin: -2.9 },
+          { pos: onDie(PCH_DIE, ...centerOf(PCH_DIE, 'sata'), 0.05), text: t('SATA (Festplatte)', 'SATA (hard disk)'), zMax: -2.25, zMin: -2.9 },
+          { pos: onDie(PCH_DIE, ...centerOf(PCH_DIE, 'lan'), 0.05), text: t('Netzwerk', 'Network'), zMax: -2.25, zMin: -2.9 },
+          { pos: onDie(PCH_DIE, ...centerOf(PCH_DIE, 'audio'), 0.05), text: t('Audio', 'Audio'), zMax: -2.25, zMin: -2.9 },
+          { pos: onDie(PCH_DIE, ...centerOf(PCH_DIE, 'dmi'), 0.05), text: t('Verbindung zur CPU (DMI)', 'Link to the CPU (DMI)'), zMax: -2.25, zMin: -2.9 },
+          { pos: onDie(PCH_DIE, ...centerOf(PCH_DIE, 'buf'), 0.05), text: t('Zwischenspeicher', 'Buffers'), zMax: -2.3, zMin: -2.9 },
+        ],
+      }),
+  },
+  {
+    id: 'pch.block',
+    parent: 'pch.die',
+    unit: 1e-6,
+    anchor: onDie(PCH_DIE, ...USB_F),
+    zIn: -2.65,
+    zCover: -3.0,
+    floor: -3.95,
+    catchR: 0.0012,
+    pullR: 0.004,
+    view: { pitch: 62 },
+    title: t('USB-Steuerung', 'USB controller'),
+    captions: [{ z: -2.65, text: t('Die USB-Steuerung: Logik, die Datenpakete von USB-Geräten annimmt, prüft und an den Prozessor weiterreicht.', 'The USB controller: logic that receives data packets from USB devices, checks them and passes them on to the processor.') }],
+    build: (ctx) =>
+      buildTexLevel(ctx, {
+        die: PCH_DIE,
+        cx: USB_F[0],
+        cy: USB_F[1],
+        size: 3,
+        texW: 3072,
+        scale: 1000,
+        labels: [blockLabel(PCH_DIE, 'buf', USB_F[0], USB_F[1], 'Zwischenspeicher (SRAM)', 'Buffer memory (SRAM)', -2.7, -3.4)],
+      }),
+  },
+  {
+    id: 'pch.metal',
+    parent: 'pch.block',
+    unit: 1e-6,
+    anchor: [0, 0, 0],
+    zIn: -3.35,
+    zCover: -3.75,
+    floor: -5.95,
+    catchR: 300e-6,
+    pullR: 900e-6,
+    view: { pitch: 52 },
+    title: t('Leiterbahnen', 'Interconnect'),
+    captions: [{ z: -3.35, text: t('Auch im Chipsatz: viele Lagen Kupferleitungen über den Transistoren.', 'In the chipset too: many layers of copper wires above the transistors.') }],
+    build: (ctx) => buildMetal(ctx, 31),
+  },
+  {
+    id: 'pch.gates',
+    parent: 'pch.metal',
+    unit: 1e-9,
+    anchor: [0, METAL_BOTTOM - 0.16, 0],
+    zIn: -5.5,
+    zCover: -5.95,
+    floor: -7.6,
+    catchR: 1.2e-6,
+    pullR: 3e-6,
+    view: { pitch: 48, yaw: -20 },
+    title: t('Transistoren', 'Transistors'),
+    captions: [{ z: -5.5, text: t('Aus solchen NAND-Gattern lässt sich jede Logik bauen – auch die USB-Steuerung.', 'Any logic can be built from NAND gates like these – the USB controller too.') }],
+    build: (ctx) => buildFinfet(ctx, 'nand', 41),
+  },
+  {
+    id: 'pch.atoms',
+    parent: 'pch.gates',
+    unit: 1e-9,
+    anchor: [0, 0, 0],
+    zIn: -7.3,
+    zCover: -7.85,
+    floor: -9.35,
+    catchR: 4e-9,
+    pullR: 25e-9,
+    view: { pitch: 34, yaw: 28, minPitch: 4 },
+    title: t('Atome', 'Atoms'),
+    path: 'pch',
+    captions: [{ z: -7.3, text: t('Am Ende wieder: Silizium-Atome in einem perfekten Kristall.', 'At the end again: silicon atoms in a perfect crystal.') }],
+    build: buildFinAtoms,
+  },
+
   // ───────────────────────── freie Platine
   {
     id: 'board.pcb',
     parent: 'board',
     unit: 1e-3,
     anchor: [0, 0.004, 0],
-    zIn: -1.75,
-    zCover: -2.8,
+    zIn: -1.3,
+    zCover: -3.4,
     floor: -3.05,
-    catchR: 0.01,
-    pullR: 0.01,
+    catchR: 0.016,
+    pullR: 0.016,
     shareDepth: true,
     title: t('Leiterplatte', 'Circuit board'),
-    dynamic: (p) => (isBare(p[0], p[2]) ? [p[0], 0.004, p[2]] : null),
-    captions: [{ z: -1.75, text: t('Unter dem schwarzen Lötstopplack liegen Leiterbahnen aus Kupfer. Eine Platine hat 6–12 solcher Lagen übereinander.', 'Copper traces lie under the black solder mask. A board has 6–12 such layers stacked on top of each other.') }],
+    dynamic: (p) => (Math.abs(p[0]) < BOARD.w / 2 - 3 && Math.abs(p[2]) < BOARD.d / 2 - 3 ? [p[0], 0.004, p[2]] : null),
+    captions: [{ z: -1.3, text: t('Unter dem schwarzen Lötstopplack liegen Leiterbahnen aus Kupfer. Eine Platine hat 6–12 solcher Lagen übereinander.', 'Copper traces lie under the black solder mask. A board has 6–12 such layers stacked on top of each other.') }],
     build: (ctx: BuildCtx) => {
       pcbAnchor = ctx.anchor;
-      return buildPcbPatch(ctx, 24, 1, 0, 0, false);
+      return buildPcbPatch(ctx, 40, 1, 0, 0, false);
     },
   },
   {
@@ -640,7 +748,7 @@ export const LEVELS: LevelDef[] = [
     anchor: [0, 0.002, 0],
     zIn: -2.75,
     zCover: -3.15,
-    floor: -4.3,
+    floor: -4.5,
     catchR: 0.0008,
     pullR: 0.0008,
     shareDepth: true,
@@ -656,6 +764,7 @@ export const PATHS: { id: string; leaf: string; label: { de: string; en: string 
   { id: 'ssd', leaf: 'ssd.atoms', label: t('SSD', 'SSD') },
   { id: 'hdd', leaf: 'hdd.atoms', label: t('HDD', 'HDD') },
   { id: 'gpu', leaf: 'gpu.atoms', label: t('GPU', 'GPU') },
+  { id: 'pch', leaf: 'pch.atoms', label: t('Chipsatz', 'Chipset') },
 ];
 
 void THREE;
