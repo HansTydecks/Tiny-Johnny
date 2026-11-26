@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ScaleApp from '../components/scale/ScaleApp.svelte';
+---
+
+<BaseLayout
+  title="Scale of Things"
+  description="Zoom vom Mainboard bis zu den Atomen: CPU, RAM, SSD, Festplatte und Grafikkarte in echter Größe – mit Ameise, Haar, Bakterium und Virus zum Vergleich."
+  bodyClass="scale-page"
+>
+  <ScaleApp client:only="svelte" />
+  <noscript>
+    <p class="noscript">Für die 3D-Ansicht wird JavaScript benötigt.</p>
+  </noscript>
+</BaseLayout>
+
+<style>
+  :global(body.scale-page main) {
+    min-height: 0;
+  }
+  .noscript {
+    max-width: 640px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+</style>
