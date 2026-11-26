@@ -580,10 +580,17 @@
     .mag {
       display: none;
     }
+    .dive {
+      grid-column: 1 / -1;
+    }
+    .dive-b {
+      flex-wrap: wrap;
+    }
     .dive-b button {
       min-width: 0;
       padding: 6px 7px;
       font-size: 0.74rem;
+      flex: 1 0 auto;
     }
     .crumb {
       font-size: 0.78rem;

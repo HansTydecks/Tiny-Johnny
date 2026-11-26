@@ -543,7 +543,7 @@ export function buildBoard(ctx: BuildCtx): Built {
   }
   // Abdeckung mit drei Lüfteröffnungen
   const fanX = [GPU.x0 + 50, GPU.x0 + 138, GPU.x0 + 226];
-  const fanR = 44;
+  const fanR = 41.5; // Öffnungen (Ø 85 mm) dürfen sich bei 88 mm Abstand nicht berühren
   const shape = new THREE.Shape();
   const sw = gLen - 2;
   const sh0 = gH + 2;

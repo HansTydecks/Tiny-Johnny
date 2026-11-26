@@ -62,8 +62,8 @@ export function buildPcbPatch(ctx: BuildCtx, size: number, unitPerMm: number, mi
       }
     }
     const box = new THREE.BoxGeometry(1, 1, 1);
-    root.add(inst(box, MAT.copper({ roughness: 0.45, color: 0xc8794c }), cu));
-    root.add(inst(box, phys({ color: 0x14181c, roughness: 0.25, clearcoat: 0.8, transparent: true, opacity: 0.62, depthWrite: false }), mask));
+    root.add(inst(box, MAT.copper({ roughness: 0.32, color: 0xe08a55 }), cu));
+    root.add(inst(box, phys({ color: 0x0e1713, roughness: 0.3, clearcoat: 0.45, clearcoatRoughness: 0.25, transparent: true, opacity: 0.22, depthWrite: false }), mask));
     // Durchkontaktierungen: Kupferring mit Bohrung
     const rings: InstSpec[] = [];
     const holes: InstSpec[] = [];

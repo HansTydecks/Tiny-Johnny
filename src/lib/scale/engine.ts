@@ -113,6 +113,8 @@ export class ScaleEngine {
   private intent: Level | null = null;
   /** Mauszeiger zeigte auf die nackte Platine → Platinen-Zoom erlaubt */
   private pcbIntent = false;
+  /** Treffpunkt auf der Platine – dort wird der Platinen-Ausschnitt verankert */
+  private pcbPoint: THREE.Vector3 | null = null;
   private hoverId: string | null = null;
   private hoverObj: THREE.Object3D | null = null;
   private hoverT = 0;
@@ -423,7 +425,7 @@ export class ScaleEngine {
   }
 
   /** Welches Bauteil der Platine liegt unter dem Punkt? (nur solange die Platine zu sehen ist) */
-  private pickPart(px: number, py: number): { id: string; obj: THREE.Object3D } | null {
+  private pickPart(px: number, py: number): { id: string; obj: THREE.Object3D; point: THREE.Vector3 } | null {
     if (!this.root.built?.pick || this.root.alpha < 0.5) return null;
     const ndc = new THREE.Vector2((px / this.w) * 2 - 1, -(py / this.h) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);
@@ -431,7 +433,7 @@ export class ScaleEngine {
     for (const h of hits) {
       let o: THREE.Object3D | null = h.object;
       while (o && !o.userData.part) o = o.parent;
-      if (o && (o as THREE.Mesh).visible !== false) return { id: o.userData.part as string, obj: o };
+      if (o && (o as THREE.Mesh).visible !== false) return { id: o.userData.part as string, obj: o, point: this.camPos.clone().addScaledVector(h.point, this.dist) };
     }
     return null;
   }
@@ -448,6 +450,7 @@ export class ScaleEngine {
     } else {
       this.intent = null;
       this.pcbIntent = hit.id === 'pcb';
+      this.pcbPoint = this.pcbIntent ? hit.point : null;
     }
   }
 
@@ -611,7 +614,7 @@ export class ScaleEngine {
           continue;
         }
         if (c.dynReady) continue;
-        const loc = this.toLocal(cur, this.target);
+        const loc = this.toLocal(cur, this.pcbPoint ?? this.target);
         const a = c.def.dynamic(loc);
         if (a) {
           if (c.built) this.disposeLevel(c);
@@ -870,7 +873,7 @@ export class ScaleEngine {
     this.setHover(hit);
   }
 
-  private setHover(hit: { id: string; obj: THREE.Object3D } | null) {
+  private setHover(hit: { id: string; obj: THREE.Object3D; point?: THREE.Vector3 } | null) {
     const id = hit && hit.id !== 'pcb' ? hit.id : null;
     if (id === this.hoverId && hit?.obj === this.hoverObj) {
       if (this.brackets) (this.brackets.material as THREE.LineBasicMaterial).opacity = 0.55 + 0.35 * Math.sin(this.t * 5);

@@ -327,7 +327,7 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
       }
     }
     if (micro > 1.5) {
-      g.globalAlpha = 0.22;
+      g.globalAlpha = 0.1;
       g.strokeStyle = '#6c7682';
       g.lineWidth = Math.max(1, 0.007 * sx * 0.6);
       const f = 0.0105;
