@@ -182,7 +182,7 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
     // Glasfasergewebe (FR-4) schimmert durch die Lötstoppfarbe
     const pitchMm = 0.5; // Garnabstand ~ 0,5 mm
     g.save();
-    g.globalAlpha = 0.11 * Math.min(1, micro);
+    g.globalAlpha = 0.2 * Math.min(1, micro);
     for (let k = 0; k < 2; k++) {
       const n0 = Math.floor((k ? z0 : x0) / pitchMm) - 1;
       const n1 = Math.ceil((k ? z1 : x1) / pitchMm) + 1;
@@ -195,8 +195,8 @@ export function drawPcb(g: CanvasRenderingContext2D, x0: number, z0: number, x1:
     }
     // einzelne Glasfasern (~7 µm) bei sehr starker Vergrößerung
     if (micro > 1.5) {
-      g.globalAlpha = 0.09;
-      g.strokeStyle = '#59616b';
+      g.globalAlpha = 0.22;
+      g.strokeStyle = '#6c7682';
       g.lineWidth = Math.max(1, 0.007 * sx * 0.6);
       const f = 0.0105;
       for (let x = Math.floor(x0 / f) * f; x < x1; x += f) {

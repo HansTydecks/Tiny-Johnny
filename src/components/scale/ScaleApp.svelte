@@ -475,10 +475,17 @@
     font-size: 0.85rem;
     color: #cfd6e6;
     pointer-events: none;
-    animation: hint 1.2s ease 0.6s both;
+    animation: hint 9s ease 0.6s both;
   }
   @keyframes hint {
-    from {
+    0% {
+      opacity: 0;
+    }
+    12%,
+    82% {
+      opacity: 1;
+    }
+    100% {
       opacity: 0;
     }
   }
@@ -538,7 +545,7 @@
     .hint {
       flex-direction: column;
       gap: 6px;
-      top: 40%;
+      top: 38%;
     }
   }
   @media (prefers-reduced-motion: reduce) {

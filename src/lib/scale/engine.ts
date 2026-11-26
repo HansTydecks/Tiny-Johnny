@@ -624,7 +624,9 @@ export class ScaleEngine {
     if (this.cand && this.candW > 0) {
       const auto = this.auto?.kind === 'dive';
       const k = auto ? 1 - Math.exp(-dt * 2.6) : clamp(5.5 * this.candW * Math.max(0, -zMove) + (this.candW > 0.5 ? dt * 0.35 * this.candW : 0), 0, 1);
-      this.target.lerp(this.cand.pos, k);
+      // Wer schon tiefer ist, als das Bauteil erscheint, wird zuverlässig hineingezogen
+      const late = this.z < this.cand.def.zIn + 0.1 && Math.max(0, -zMove) > 0 ? clamp(dt * 2.5, 0, 1) : 0;
+      this.target.lerp(this.cand.pos, Math.min(1, k + late));
       if (this.zoomPoint) this.zoomPoint.lerp(this.cand.pos, k);
     }
     // ── In der tiefsten Ebene bleiben

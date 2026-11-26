@@ -45,7 +45,7 @@ export function buildDieLevel(ctx: BuildCtx, o: DieLevelOpts): Built {
   drawDie(g, d, 0, 0, d.w, d.h, o.texW, H);
   const tex = canvasTex(cv, ctx.aniso);
   const front = frontMaterial(tex);
-  const back = MAT.silicon({ iridescence: 0.2, roughness: 0.32, envMapIntensity: 0.55 });
+  const back = MAT.silicon({ iridescence: 0.2 });
   const side = MAT.silicon({ iridescence: 0, roughness: 0.5, metalness: 0.5 });
   // Box-Flächen: +x, −x, +y (Vorderseite), −y (Rückseite), +z, −z
   const slab = new THREE.Mesh(new THREE.BoxGeometry(d.w, o.thick, d.h), [side, side, front, back, side, side]);
