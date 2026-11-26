@@ -12,6 +12,7 @@ Leitfrage: *Woher weiß der Computer eigentlich, was er tun soll?*
 | **Tutorial** | 14 Missionen, in denen Johnny Bauteil für Bauteil aufgebaut wird – mit Leitfragen, Vorhersagen und automatisch geprüften Zielen |
 | **Aufgaben** | 20 Aufgaben (Rechnen & Mathe, Spiele & Zähler, Informatik-Klassiker) mit Testfällen, gestuften Tipps und Musterlösung |
 | **Sandbox** | Johnny mit allen Funktionen: Mikro-/Makroschritt, Ausführen, eigene Befehle aufnehmen, Bonsai-Modus, .ram/.mc-Dateien |
+| **Scale of Things** | 3D-Zoom (three.js) vom Mainboard bis zu einzelnen Atomen – durch CPU, RAM, SSD, Festplatte und Grafikkarte, mit Ameise, Haar, Bakterium, Virus und DNA als Größenvergleich (Deutsch/Englisch) |
 
 Der Simulator verhält sich **exakt wie Johnny 2.0** (gleicher Mikrocode, gleiche Grenzen, gleiche Dateiformate).
 Das wird bei jeder Änderung automatisch getestet.
@@ -177,11 +178,13 @@ npm run build    # statische Website nach dist/
 src/lib/johnny/      Johnny-Engine (engine.ts), Mikrocode, Assembler, Dateiformate, Prüfung, Datenfluss (flow.ts), Tests
 src/components/      simulator/ (Johnny), learning/ (Missionen, Aufgaben, Quiz …),
                      vonneumann/, storage/, io/ (Simulationen), content/ (Textbausteine)
+src/lib/scale/       Scale of Things: Zoom-Maschine (engine.ts), Zoomstufen (levels.ts), Szenen in builders/, Tests
 src/content/         kapitel/, tutorial/, aufgaben/, beispiele/
 src/pages/           Seiten
 ```
 
 Technik: [Astro](https://astro.build) (statische Seite) + [Svelte 5](https://svelte.dev) für interaktive Teile,
+[three.js](https://threejs.org) für die 3D-Ansicht „Scale of Things“ (wird nur auf dieser Seite geladen),
 Tests mit [Vitest](https://vitest.dev), Veröffentlichung über GitHub Pages (`.github/workflows/deploy.yml`).
 
 ## Quellen & Lizenz
